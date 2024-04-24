@@ -1,0 +1,581 @@
+###############################################################################
+#                                                                             #
+# IAR ELF Linker V5.30.0.51174/W32 for ARM              11/Nov/2009  15:21:58 #
+# Copyright 2007-2009 IAR Systems AB.                                         #
+#                                                                             #
+#    Output file  =  E:\PROJECTs\ARM\ESL_LanPING\base_config_debug\Exe\ESL_La #
+#                    nPING_Device.out                                         #
+#    Map file     =  E:\PROJECTs\ARM\ESL_LanPING\base_config_debug\List\ESL_L #
+#                    anPING_Device.map                                        #
+#    Command line =  E:\PROJECTs\ARM\ESL_LanPING\base_config_debug\Obj\CP2200 #
+#                    .o E:\PROJECTs\ARM\ESL_LanPING\base_config_debug\Obj\at9 #
+#                    1flash.o E:\PROJECTs\ARM\ESL_LanPING\base_config_debug\O #
+#                    bj\board_cstartup_iar.o E:\PROJECTs\ARM\ESL_LanPING\base #
+#                    _config_debug\Obj\board_lowlevel.o                       #
+#                    E:\PROJECTs\ARM\ESL_LanPING\base_config_debug\Obj\main.o #
+#                     E:\PROJECTs\ARM\ESL_LanPING\base_config_debug\Obj\memb. #
+#                    o E:\PROJECTs\ARM\ESL_LanPING\base_config_debug\Obj\shel #
+#                    l.o E:\PROJECTs\ARM\ESL_LanPING\base_config_debug\Obj\te #
+#                    lnetd.o E:\PROJECTs\ARM\ESL_LanPING\base_config_debug\Ob #
+#                    j\timer.o E:\PROJECTs\ARM\ESL_LanPING\base_config_debug\ #
+#                    Obj\uip.o E:\PROJECTs\ARM\ESL_LanPING\base_config_debug\ #
+#                    Obj\uip_arp.o --redirect _Printf=_PrintfSmall            #
+#                    --redirect _Scanf=_ScanfSmall -o                         #
+#                    E:\PROJECTs\ARM\ESL_LanPING\base_config_debug\Exe\ESL_La #
+#                    nPING_Device.out --map E:\PROJECTs\ARM\ESL_LanPING\base_ #
+#                    config_debug\List\ESL_LanPING_Device.map --config        #
+#                    E:\PROJECTs\ARM\ESL_LanPING\startups\at91SAM7S32_FLASH.i #
+#                    cf --entry resetHandler                                  #
+#                                                                             #
+#                                                                             #
+###############################################################################
+
+*******************************************************************************
+*** RUNTIME MODEL ATTRIBUTES
+***
+
+__endian      = little
+__thumb_aware = enabled
+
+
+*******************************************************************************
+*** PLACEMENT SUMMARY
+***
+
+"P1":  place in [from mem:0x100 to mem:0x7fff] { ro };
+"P2":  place in [from mem:0x200000 to mem:0x201fff] {
+          rw, block CSTACK, block SVC_STACK, block IRQ_STACK, block FIQ_STACK,
+          block UND_STACK, block ABT_STACK, block HEAP };
+
+  Section            Kind        Address    Size  Object
+  -------            ----        -------    ----  ------
+"P1":                                     0x74b4
+  .text              ro code  0x00000100  0x1da0  uip.o [1]
+  .text              ro code  0x00001ea0   0xdec  shell.o [1]
+  .text              ro code  0x00002c8c   0xcc8  main.o [1]
+  .text              ro code  0x00003954   0x9d0  CP2200.o [1]
+  .text              ro code  0x00004324   0x8f8  telnetd.o [1]
+  .text              ro code  0x00004c1c   0x86c  uip_arp.o [1]
+  .text              ro code  0x00005488   0x704  xprintfsmall.o [3]
+  .text              ro code  0x00005b8c   0x1c8  board_lowlevel.o [1]
+  .text              ro code  0x00005d54   0x1c8  FltDiv.o [4]
+  .text              ro code  0x00005f1c   0x1c4  I32DivMod.o [4]
+  .text              ro code  0x000060e0   0x1bc  xstoul.o [3]
+  .text              ro code  0x0000629c   0x14c  FltMul.o [4]
+  .text              ro code  0x000063e8   0x10c  memb.o [1]
+  .text              ro code  0x000064f4    0xd4  ABImemcpy.o [4]
+  .text              ro code  0x000065c8    0x9c  strncpy.o [4]
+  .text              ro code  0x00006664    0x94  memchr.o [4]
+  .vectors           ro code  0x000066f8    0x88  board_cstartup_iar.o [1]
+  .text              ro code  0x00006780    0x84  timer.o [1]
+  .text              ro code  0x00006804    0x7c  ABImemset.o [4]
+  .text              ro code  0x00006880    0x74  strcmp.o [4]
+  .text              ro code  0x000068f4    0x64  S32ToFlt.o [4]
+  .text              ro code  0x00006958    0x58  FltToS32.o [4]
+  .text              ro code  0x000069b0    0x54  sprintf.o [3]
+  .text              ro code  0x00006a04    0x54  strlen.o [4]
+  .rodata            const    0x00006a58    0x50  xstoul.o [3]
+  .cstartup          ro code  0x00006aa8    0x4c  board_cstartup_iar.o [1]
+  .text              ro code  0x00006af4    0x4c  strncmp.o [3]
+  .rodata            const    0x00006b40    0x38  shell.o [1]
+  .text              ro code  0x00006b78    0x34  data_init2.o [4]
+  .text              ro code  0x00006bac    0x2c  memb.o [1]
+  .text              ro code  0x00006bd8    0x2c  telnetd.o [1]
+  .text              ro code  0x00006c04    0x2c  copy_init2.o [4]
+  .text              ro code  0x00006c30    0x28  errno.o [3]
+  .text              ro code  0x00006c58    0x28  zero_init2.o [4]
+  .rodata            const    0x00006c80    0x24  shell.o [1]
+  .rodata            const    0x00006ca4    0x24  shell.o [1]
+  .rodata            const    0x00006cc8    0x24  shell.o [1]
+  .rodata            const    0x00006cec    0x24  shell.o [1]
+  .text              ro code  0x00006d10    0x24  cmain.o [4]
+  .iar.init_table    const    0x00006d34    0x24  - Linker created -
+  .rodata            const    0x00006d58    0x20  shell.o [1]
+  .rodata            const    0x00006d78    0x20  shell.o [1]
+  .rodata            const    0x00006d98    0x20  shell.o [1]
+  .text              ro code  0x00006db8    0x20  shell.o [1]
+  .text              ro code  0x00006dd8    0x20  strchr.o [4]
+  .rodata            const    0x00006df8    0x1c  shell.o [1]
+  .rodata            const    0x00006e14    0x1c  shell.o [1]
+  .rodata            const    0x00006e30    0x1c  shell.o [1]
+  .rodata            const    0x00006e4c    0x1c  shell.o [1]
+  .rodata            const    0x00006e68    0x1c  shell.o [1]
+  .rodata            const    0x00006e84    0x1c  shell.o [1]
+  .rodata            const    0x00006ea0    0x1c  shell.o [1]
+  .rodata            const    0x00006ebc    0x1c  shell.o [1]
+  .rodata            const    0x00006ed8    0x18  shell.o [1]
+  .rodata            const    0x00006ef0    0x18  shell.o [1]
+  .rodata            const    0x00006f08    0x18  shell.o [1]
+  .rodata            const    0x00006f20    0x18  shell.o [1]
+  .rodata            const    0x00006f38    0x18  shell.o [1]
+  .rodata            const    0x00006f50    0x18  shell.o [1]
+  .rodata            const    0x00006f68    0x18  shell.o [1]
+  .rodata            const    0x00006f80    0x18  shell.o [1]
+  .rodata            const    0x00006f98    0x18  shell.o [1]
+  .rodata            const    0x00006fb0    0x18  shell.o [1]
+  .rodata            const    0x00006fc8    0x14  shell.o [1]
+  .rodata            const    0x00006fdc    0x14  shell.o [1]
+  .rodata            const    0x00006ff0    0x14  shell.o [1]
+  .rodata            const    0x00007004    0x14  shell.o [1]
+  .rodata            const    0x00007018    0x14  shell.o [1]
+  .rodata            const    0x0000702c    0x14  shell.o [1]
+  .rodata            const    0x00007040    0x14  shell.o [1]
+  .rodata            const    0x00007054    0x14  shell.o [1]
+  .rodata            const    0x00007068    0x14  shell.o [1]
+  .rodata            const    0x0000707c    0x14  shell.o [1]
+  .rodata            const    0x00007090    0x14  shell.o [1]
+  .rodata            const    0x000070a4    0x14  shell.o [1]
+  .rodata            const    0x000070b8    0x14  shell.o [1]
+  .rodata            const    0x000070cc    0x14  shell.o [1]
+  .rodata            const    0x000070e0    0x14  shell.o [1]
+  .text              ro code  0x000070f4    0x14  XXexit.o [4]
+  .text              ro code  0x00007108    0x14  xsprout.o [3]
+  .rodata            const    0x0000711c    0x10  shell.o [1]
+  .rodata            const    0x0000712c    0x10  shell.o [1]
+  .rodata            const    0x0000713c    0x10  shell.o [1]
+  .rodata            const    0x0000714c    0x10  shell.o [1]
+  .rodata            const    0x0000715c    0x10  shell.o [1]
+  .rodata            const    0x0000716c    0x10  shell.o [1]
+  .rodata            const    0x0000717c    0x10  shell.o [1]
+  .rodata            const    0x0000718c    0x10  shell.o [1]
+  .rodata            const    0x0000719c    0x10  shell.o [1]
+  .text              ro code  0x000071ac    0x10  U32ToFlt.o [4]
+  .text              ro code  0x000071bc    0x10  cexit.o [4]
+  .rodata            const    0x000071cc     0xc  shell.o [1]
+  .rodata            const    0x000071d8     0xc  shell.o [1]
+  .rodata            const    0x000071e4     0xc  shell.o [1]
+  .rodata            const    0x000071f0     0xc  shell.o [1]
+  .rodata            const    0x000071fc     0xc  shell.o [1]
+  .rodata            const    0x00007208     0xc  shell.o [1]
+  .rodata            const    0x00007214     0xc  shell.o [1]
+  .rodata            const    0x00007220     0xc  shell.o [1]
+  .rodata            const    0x0000722c     0x8  shell.o [1]
+  .rodata            const    0x00007234     0x8  shell.o [1]
+  .rodata            const    0x0000723c     0x8  shell.o [1]
+  .rodata            const    0x00007244     0x8  shell.o [1]
+  .rodata            const    0x0000724c     0x8  shell.o [1]
+  .rodata            const    0x00007254     0x8  shell.o [1]
+  .rodata            const    0x0000725c     0x8  shell.o [1]
+  .rodata            const    0x00007264     0x8  shell.o [1]
+  .rodata            const    0x0000726c     0x8  shell.o [1]
+  .rodata            const    0x00007274     0x8  shell.o [1]
+  .rodata            const    0x0000727c     0x8  shell.o [1]
+  .rodata            const    0x00007284     0x8  shell.o [1]
+  .rodata            const    0x0000728c     0x8  shell.o [1]
+  .rodata            const    0x00007294     0x8  shell.o [1]
+  .rodata            const    0x0000729c     0x8  shell.o [1]
+  .rodata            const    0x000072a4     0x8  shell.o [1]
+  .rodata            const    0x000072ac     0x8  shell.o [1]
+  .rodata            const    0x000072b4     0x8  shell.o [1]
+  .rodata            const    0x000072bc     0x8  shell.o [1]
+  .rodata            const    0x000072c4     0x8  shell.o [1]
+  .rodata            const    0x000072cc     0x8  shell.o [1]
+  .rodata            const    0x000072d4     0x8  shell.o [1]
+  .rodata            const    0x000072dc     0x8  shell.o [1]
+  .rodata            const    0x000072e4     0x8  shell.o [1]
+  .rodata            const    0x000072ec     0x8  shell.o [1]
+  .rodata            const    0x000072f4     0x8  uip_arp.o [1]
+  .rodata            const    0x000072fc     0x8  xprintfsmall.o [3]
+  .text              ro code  0x00007304     0x8  low_level_init.o [3]
+  .text              ro code  0x0000730c     0x8  exit.o [3]
+  .rodata            const    0x00007314     0x4  uip.o [1]
+  .rodata            const    0x00007318     0x4  uip_arp.o [1]
+  .text              ro code  0x0000731c     0x4  vectortrap.o [4]
+  .text              ro code  0x00007320     0x4  vectortrap.o [4]
+  .text              ro code  0x00007324     0x4  vectortrap.o [4]
+  .text              ro code  0x00007328     0x4  vectortrap.o [4]
+  .text              ro code  0x0000732c     0x4  vectortrap.o [4]
+  .text              ro code  0x00007330     0x4  IntDivZer.o [4]
+  Initializer bytes  ro data  0x00007334   0x280  <for P2 s0> (used: 0x27d)
+                            - 0x000075b4  0x74b4
+
+"P2", part 1 of 3:                         0x500
+  CSTACK                      0x00200000   0x400  <Block>
+    CSTACK           uninit   0x00200000   0x400  <Block tail>
+  IRQ_STACK                   0x00200400   0x100  <Block>
+    IRQ_STACK        uninit   0x00200400   0x100  <Block tail>
+                            - 0x00200500   0x500
+
+"P2", part 2 of 3:                         0xd0c
+  .bss               zero     0x00200500   0x5e0  uip.o [1]
+  .bss               zero     0x00200ae0   0x480  telnetd.o [1]
+  .bss               zero     0x00200f60    0xa8  uip.o [1]
+  .bss               zero     0x00201008    0x8c  telnetd.o [1]
+  .bss               zero     0x00201094    0x60  uip_arp.o [1]
+  .bss               zero     0x002010f4    0x38  main.o [1]
+  .bss               zero     0x0020112c    0x14  telnetd.o [1]
+  .bss               zero     0x00201140    0x10  shell.o [1]
+  .bss               zero     0x00201150     0x8  CP2200.o [1]
+  .bss               zero     0x00201158     0x8  main.o [1]
+  .bss               zero     0x00201160     0x8  main.o [1]
+  .bss               zero     0x00201168     0x8  main.o [1]
+  .bss               zero     0x00201170     0x8  main.o [1]
+  .bss               zero     0x00201178     0x8  main.o [1]
+  .bss               zero     0x00201180     0x8  main.o [1]
+  .bss               zero     0x00201188     0x8  uip.o [1]
+  .bss               zero     0x00201190     0x8  errno.o [3]
+  .bss               zero     0x00201198     0x4  main.o [1]
+  .bss               zero     0x0020119c     0x4  main.o [1]
+  .bss               zero     0x002011a0     0x4  main.o [1]
+  .bss               zero     0x002011a4     0x4  main.o [1]
+  .bss               zero     0x002011a8     0x4  telnetd.o [1]
+  .bss               zero     0x002011ac     0x4  telnetd.o [1]
+  .bss               zero     0x002011b0     0x4  telnetd.o [1]
+  .bss               zero     0x002011b4     0x4  telnetd.o [1]
+  .bss               zero     0x002011b8     0x4  telnetd.o [1]
+  .bss               zero     0x002011bc     0x4  telnetd.o [1]
+  .bss               zero     0x002011c0     0x4  telnetd.o [1]
+  .bss               zero     0x002011c4     0x4  telnetd.o [1]
+  .bss               zero     0x002011c8     0x4  telnetd.o [1]
+  .bss               zero     0x002011cc     0x4  uip.o [1]
+  .bss               zero     0x002011d0     0x4  uip.o [1]
+  .bss               zero     0x002011d4     0x4  uip.o [1]
+  .bss               zero     0x002011d8     0x4  uip.o [1]
+  .bss               zero     0x002011dc     0x4  uip.o [1]
+  .bss               zero     0x002011e0     0x4  uip.o [1]
+  .bss               zero     0x002011e4     0x4  uip.o [1]
+  .bss               zero     0x002011e8     0x4  uip.o [1]
+  .bss               zero     0x002011ec     0x4  uip_arp.o [1]
+  .bss               zero     0x002011f0     0x2  uip.o [1]
+  .bss               zero     0x002011f2     0x2  uip.o [1]
+  .bss               zero     0x002011f4     0x2  uip.o [1]
+  .bss               zero     0x002011f6     0x2  uip.o [1]
+  .bss               zero     0x002011f8     0x2  uip.o [1]
+  .bss               zero     0x002011fa     0x1  CP2200.o [1]
+  .bss               zero     0x002011fb     0x1  main.o [1]
+  .bss               zero     0x002011fc     0x1  main.o [1]
+  .bss               zero     0x002011fd     0x1  main.o [1]
+  .bss               zero     0x002011fe     0x1  main.o [1]
+  .bss               zero     0x002011ff     0x1  main.o [1]
+  .bss               zero     0x00201200     0x1  main.o [1]
+  .bss               zero     0x00201201     0x1  main.o [1]
+  .bss               zero     0x00201202     0x1  shell.o [1]
+  .bss               zero     0x00201203     0x1  shell.o [1]
+  .bss               zero     0x00201204     0x1  uip.o [1]
+  .bss               zero     0x00201205     0x1  uip.o [1]
+  .bss               zero     0x00201206     0x1  uip.o [1]
+  .bss               zero     0x00201207     0x1  uip.o [1]
+  .bss               zero     0x00201208     0x1  uip_arp.o [1]
+  .bss               zero     0x00201209     0x1  uip_arp.o [1]
+  .bss               zero     0x0020120a     0x1  uip_arp.o [1]
+  .bss               zero     0x0020120b     0x1  uip_arp.o [1]
+                            - 0x0020120c   0xd0c
+
+"P2", part 3 of 3:                         0x280
+  P2 s0                       0x0020120c   0x280  <Init block>
+    .textrw          inited   0x0020120c   0x268  at91flash.o [1]
+    .data            inited   0x00201474     0xc  telnetd.o [1]
+    .data            inited   0x00201480     0x4  main.o [1]
+    .data            inited   0x00201484     0x4  main.o [1]
+    .data            inited   0x00201488     0x1  main.o [1]
+                            - 0x0020148c   0x280
+
+
+*******************************************************************************
+*** INIT TABLE
+***
+
+          Address   Size
+          -------   ----
+Zero (__iar_zero_init2)
+    1 destination range, total size 0xd0c:
+          0x200500  0xd0c
+
+Copy (__iar_copy_init2)
+    1 source range, total size 0x280 (100% of destination):
+            0x7334  0x280
+    1 destination range, total size 0x27d:
+          0x20120c  0x27d
+
+
+*******************************************************************************
+*** MODULE SUMMARY
+***
+
+    Module                ro code  rw code  ro data  rw data
+    ------                -------  -------  -------  -------
+E:\PROJECTs\ARM\ESL_LanPING\base_config_debug\Obj: [1]
+    CP2200.o                2 512                          9
+    at91flash.o                        616      616
+    board_cstartup_iar.o      212
+    board_lowlevel.o          456
+    main.o                  3 272                 9      136
+    memb.o                    312
+    shell.o                 3 596             1 500       18
+    telnetd.o               2 340                12    1 360
+    timer.o                   132
+    uip.o                   7 584                 4    1 726
+    uip_arp.o               2 156                12      104
+    --------------------------------------------------------
+    Total:                 22 572      616    2 153    3 353
+
+command line: [2]
+    --------------------------------------------------------
+    Total:
+
+dl4t_al_in.a: [3]
+    errno.o                    40                          8
+    exit.o                      8
+    low_level_init.o            8
+    sprintf.o                  84
+    strncmp.o                  76
+    xprintfsmall.o          1 796                 8
+    xsprout.o                  20
+    xstoul.o                  444                80
+    --------------------------------------------------------
+    Total:                  2 476                88        8
+
+rt4t_al.a: [4]
+    ABImemcpy.o               212
+    ABImemset.o               124
+    FltDiv.o                  456
+    FltMul.o                  332
+    FltToS32.o                 88
+    I32DivMod.o               452
+    IntDivZer.o                 4
+    S32ToFlt.o                100
+    U32ToFlt.o                 16
+    XXexit.o                   20
+    cexit.o                    16
+    cmain.o                    36
+    copy_init2.o               44
+    data_init2.o               52
+    memchr.o                  148
+    strchr.o                   32
+    strcmp.o                  116
+    strlen.o                   84
+    strncpy.o                 156
+    vectortrap.o               20
+    zero_init2.o               40
+    --------------------------------------------------------
+    Total:                  2 548
+
+    Gaps                                                   3
+    Linker created                               39    1 280
+------------------------------------------------------------
+    Grand Total:           27 596      616    2 280    4 644
+
+
+*******************************************************************************
+*** ENTRY LIST
+***
+
+Entry                      Address    Size  Type      Object
+-----                      -------    ----  ----      ------
+?main                   0x00006d10          Code  Gb  cmain.o [4]
+Abort_Handler           0x00007328          Code  Wk  vectortrap.o [4]
+CP2200_ReadPacket       0x00003998    0x7c  Code  Gb  CP2200.o [1]
+CP2200_WritePacket      0x00003ad0   0x164  Code  Gb  CP2200.o [1]
+CP2200_WriteTXBuffer    0x00003954    0x44  Code  Gb  CP2200.o [1]
+CP2200_status           0x002011fa     0x1  Data  Lc  CP2200.o [1]
+CSTACK$$Base            0x00200000           --   Gb  - Linker created -
+CSTACK$$Limit           0x00200400           --   Gb  - Linker created -
+DEBUG_TELNET            0x00201203     0x1  Data  Gb  shell.o [1]
+DEVICE_STATE            0x002011fb     0x1  Data  Gb  main.o [1]
+FIQ_Handler             0x0000732c          Code  Wk  vectortrap.o [4]
+IRQ_STACK$$Base         0x00200400           --   Gb  - Linker created -
+IRQ_STACK$$Limit        0x00200500           --   Gb  - Linker created -
+Init_CP2000             0x00004088   0x24c  Code  Gb  CP2200.o [1]
+Led                     0x00002ca4    0x3c  Code  Gb  main.o [1]
+LowLevelInit            0x00005b98   0x1bc  Code  Gb  board_lowlevel.o [1]
+Prefetch_Handler        0x00007324          Code  Wk  vectortrap.o [4]
+Rdelay_ms               0x0020120c    0x54  Code  Gb  at91flash.o [1]
+Region$$Table$$Base     0x00006d34           --   Gb  - Linker created -
+Region$$Table$$Limit    0x00006d58           --   Gb  - Linker created -
+SWI_Handler             0x00007320          Code  Wk  vectortrap.o [4]
+Undefined_Handler       0x0000731c          Code  Wk  vectortrap.o [4]
+_LitobSmall             0x00005a48   0x144  Code  Lc  xprintfsmall.o [3]
+_PrintfSmall            0x00005488   0x548  Code  Gb  xprintfsmall.o [3]
+_SProut                 0x00007108    0x14  Code  Gb  xsprout.o [3]
+__aeabi_errno_addr      0x00006c30    0x28  Code  Gb  errno.o [3]
+__aeabi_f2iz            0x00006958          Code  Gb  FltToS32.o [4]
+__aeabi_fdiv            0x00005d54          Code  Gb  FltDiv.o [4]
+__aeabi_fmul            0x0000629c          Code  Gb  FltMul.o [4]
+__aeabi_i2f             0x000068f4          Code  Gb  S32ToFlt.o [4]
+__aeabi_idiv0           0x00007330          Code  Gb  IntDivZer.o [4]
+__aeabi_memcpy          0x000064f4          Code  Gb  ABImemcpy.o [4]
+__aeabi_memcpy4         0x00006518          Code  Gb  ABImemcpy.o [4]
+__aeabi_memcpy8         0x00006518          Code  Gb  ABImemcpy.o [4]
+__aeabi_memset          0x00006804          Code  Gb  ABImemset.o [4]
+__aeabi_ui2f            0x000071ac          Code  Gb  U32ToFlt.o [4]
+__aeabi_uidiv           0x00005f1c          Code  Gb  I32DivMod.o [4]
+__aeabi_uidivmod        0x00005f1c          Code  Gb  I32DivMod.o [4]
+__exit                  0x000070f4          Code  Gb  XXexit.o [4]
+__iar_Errno             0x00201194     0x4  Data  Gb  errno.o [3]
+__iar_Memchr            0x00006664          Code  Gb  memchr.o [4]
+__iar_Memset            0x00006804          Code  Gb  ABImemset.o [4]
+__iar_Memset_word       0x00006810          Code  Gb  ABImemset.o [4]
+__iar_Stoul             0x000060e0   0x1bc  Code  Gb  xstoul.o [3]
+__iar_Strchr            0x00006dd8          Code  Gb  strchr.o [4]
+__iar_SubNrm            0x000063bc          Code  Gb  FltMul.o [4]
+__iar_SubNrmP           0x000063b8          Code  Gb  FltMul.o [4]
+__iar_Tls_setup___iar_Errno
+                        0x00201190     0x4  Data  Gb  errno.o [3]
+__iar_copy_init2        0x00006c04    0x2c  Code  Gb  copy_init2.o [4]
+__iar_data_init2        0x00006b78    0x34  Code  Gb  data_init2.o [4]
+__iar_i2f               0x00006908          Code  Gb  S32ToFlt.o [4]
+__iar_zero_init2        0x00006c58    0x28  Code  Gb  zero_init2.o [4]
+__low_level_init        0x00007304     0x8  Code  Gb  low_level_init.o [3]
+_exit                   0x000071bc          Code  Gb  cexit.o [4]
+acked                   0x00004550    0xb8  Code  Lc  telnetd.o [1]
+all_zeroes_addr         0x00007314     0x4  Data  Lc  uip.o [1]
+alloc_line              0x00004324    0x14  Code  Lc  telnetd.o [1]
+arp_table               0x00201094    0x60  Data  Lc  uip_arp.o [1]
+arp_timer               0x00201160     0x8  Data  Gb  main.o [1]
+arptime                 0x0020120a     0x1  Data  Lc  uip_arp.o [1]
+at91flashGetLock        0x002013b4    0x38  Code  Gb  at91flash.o [1]
+at91flashInit           0x00201260    0x10  Code  Gb  at91flash.o [1]
+at91flashSetLock        0x002013ec    0x88  Code  Gb  at91flash.o [1]
+at91flashWrite          0x00201270    0x5c  Code  Gb  at91flash.o [1]
+at91flashWritePage      0x002012cc    0xe8  Code  Gb  at91flash.o [1]
+atoi                    0x00006db8    0x20  Code  Wk  shell.o [1]
+autorization            0x00201202     0x1  Data  Gb  shell.o [1]
+broadcast_ethaddr       0x000072f4     0x8  Data  Lc  uip_arp.o [1]
+broadcast_ipaddr        0x00007318     0x4  Data  Lc  uip_arp.o [1]
+c                       0x00201206     0x1  Data  Lc  uip.o [1]
+c                       0x00201209     0x1  Data  Lc  uip_arp.o [1]
+chksum                  0x0000020c    0xa4  Code  Lc  uip.o [1]
+clock_init              0x00002de4   0x10c  Code  Gb  main.o [1]
+clock_time              0x00002ef0     0xc  Code  Gb  main.o [1]
+closed                  0x00004780    0x8c  Code  Lc  telnetd.o [1]
+config_mcu              0x00002f18    0x70  Code  Gb  main.o [1]
+cpWriteMac              0x000042d4    0x50  Code  Lc  CP2200.o [1]
+dealloc_line            0x00004338    0x1c  Code  Lc  telnetd.o [1]
+defaultFiqHandler       0x00005b90     0x4  Code  Gb  board_lowlevel.o [1]
+defaultIrqHandler       0x00005b94     0x4  Code  Gb  board_lowlevel.o [1]
+defaultSpuriousHandler  0x00005b8c     0x4  Code  Gb  board_lowlevel.o [1]
+default_setting_set     0x0000308c   0x1cc  Code  Gb  main.o [1]
+delay_ms                0x00002ce0    0x64  Code  Gb  main.o [1]
+digits                  0x00006a80    0x28  Data  Lc  xstoul.o [3]
+eaddr                   0x00201150     0x8  Data  Gb  CP2200.o [1]
+exit                    0x0000730c     0x8  Code  Gb  exit.o [3]
+get_char                0x0000480c    0xb4  Code  Lc  telnetd.o [1]
+hal_WDR                 0x00002c8c    0x18  Code  Lc  main.o [1]
+help                    0x00001ea0    0x84  Code  Gb  shell.o [1]
+htons                   0x00001bf0    0x1c  Code  Gb  uip.o [1]
+i                       0x00201208     0x1  Data  Lc  uip_arp.o [1]
+ip_tostring             0x000020e4    0x58  Code  Gb  shell.o [1]
+ipaddr                  0x002011ec     0x4  Data  Lc  uip_arp.o [1]
+ipid                    0x002011f6     0x2  Data  Lc  uip.o [1]
+irqHandler              0x0000672c          Code  Gb  board_cstartup_iar.o [1]
+iss                     0x002011e4     0x4  Data  Lc  uip.o [1]
+linemem                 0x00201474     0xc  Data  Lc  telnetd.o [1]
+linemem_memb_count      0x0020112c    0x14  Data  Lc  telnetd.o [1]
+linemem_memb_mem        0x00200ae0   0x480  Data  Lc  telnetd.o [1]
+main                    0x000034fc   0x42c  Code  Gb  main.o [1]
+memb_alloc              0x00006420    0x5c  Code  Gb  memb.o [1]
+memb_free               0x0000647c    0x78  Code  Gb  memb.o [1]
+memb_init               0x000063e8    0x38  Code  Gb  memb.o [1]
+memchr                  0x00006664          Code  Gb  memchr.o [4]
+memcpy                  0x00006bd8    0x2c  Code  Wk  telnetd.o [1]
+memset                  0x00006bac    0x2c  Code  Wk  memb.o [1]
+ndigs                   0x00006a58    0x28  Data  Lc  xstoul.o [3]
+network_device_init     0x00003ee4   0x1a4  Code  Gb  CP2200.o [1]
+network_device_read     0x00003a14    0xbc  Code  Gb  CP2200.o [1]
+network_device_send     0x00003c38    0x10  Code  Gb  CP2200.o [1]
+newdata                 0x00004904   0x1cc  Code  Lc  telnetd.o [1]
+no_reboot               0x002011fd     0x1  Data  Gb  main.o [1]
+opt                     0x00201207     0x1  Data  Lc  uip.o [1]
+pad                     0x000059d0    0x78  Code  Lc  xprintfsmall.o [3]
+parse                   0x000029d8   0x198  Code  Gb  shell.o [1]
+periodic_timer          0x00201158     0x8  Data  Gb  main.o [1]
+ping_flag               0x00201205     0x1  Data  Gb  uip.o [1]
+poll_ping               0x00003258   0x29c  Code  Gb  main.o [1]
+read_CP2200             0x00003dbc   0x128  Code  Gb  CP2200.o [1]
+read_device_setting     0x00002f88   0x104  Code  Gb  main.o [1]
+rebbot_eqip             0x00002014    0x44  Code  Gb  shell.o [1]
+reboot_counter          0x0020119c     0x4  Data  Gb  main.o [1]
+reboot_timer            0x00201180     0x8  Data  Gb  main.o [1]
+reload_device           0x00002058    0x2c  Code  Gb  shell.o [1]
+resetHandler            0x00006aa8          Code  Gb  board_cstartup_iar.o [1]
+resetVector             0x000066f8          Code  Gb  board_cstartup_iar.o [1]
+reset_switch            0x00002d44    0x48  Code  Gb  main.o [1]
+s                       0x00201008    0x8c  Data  Lc  telnetd.o [1]
+s_uip_send              0x002011fc     0x1  Data  Gb  main.o [1]
+sec_counter             0x00201198     0x4  Data  Gb  main.o [1]
+sec_counter_local       0x00201484     0x4  Data  Gb  main.o [1]
+sec_timer               0x00201178     0x8  Data  Gb  main.o [1]
+senddata                0x00004608   0x174  Code  Lc  telnetd.o [1]
+sendline                0x00004370    0x9c  Code  Lc  telnetd.o [1]
+sendopt                 0x000048c0    0x44  Code  Lc  telnetd.o [1]
+server_visible          0x002011fe     0x1  Data  Gb  main.o [1]
+set_help                0x00001f24    0xc0  Code  Gb  shell.o [1]
+set_parametr            0x00002448   0x53c  Code  Gb  shell.o [1]
+setting_buf             0x002010f4    0x38  Data  Gb  main.o [1]
+shell_init              0x000029a8     0x4  Code  Gb  shell.o [1]
+shell_input             0x00002b74   0x110  Code  Gb  shell.o [1]
+shell_output            0x00004444    0xd8  Code  Gb  telnetd.o [1]
+shell_prompt            0x0000440c    0x38  Code  Gb  telnetd.o [1]
+shell_quit              0x00004354    0x1c  Code  Gb  telnetd.o [1]
+shell_start             0x000029ac    0x2c  Code  Gb  shell.o [1]
+show_device             0x000021ec   0x220  Code  Gb  shell.o [1]
+sprintf                 0x000069b0    0x54  Code  Gb  sprintf.o [3]
+start_device            0x000020b4    0x30  Code  Gb  shell.o [1]
+stop_device             0x00002084    0x30  Code  Gb  shell.o [1]
+strchr                  0x00006dd8          Code  Gb  strchr.o [4]
+strcmp                  0x00006880          Code  Gb  strcmp.o [4]
+stringtoint             0x00002410    0x38  Code  Gb  shell.o [1]
+stringtoip              0x0000213c    0xb0  Code  Gb  shell.o [1]
+strlen                  0x00006a04          Code  Gb  strlen.o [4]
+strncmp                 0x00006af4    0x4c  Code  Wk  strncmp.o [3]
+strncpy                 0x000065c8          Code  Gb  strncpy.o [4]
+telnetd_appcall         0x00004ad4   0x138  Code  Gb  telnetd.o [1]
+telnetd_init            0x0000451c    0x30  Code  Gb  telnetd.o [1]
+time_to_ping            0x00201168     0x8  Data  Gb  main.o [1]
+timeout_ping            0x00201170     0x8  Data  Gb  main.o [1]
+timer0_c_irq_handler    0x00002d8c    0x58  Code  Gb  main.o [1]
+timer_expired           0x000067cc    0x38  Code  Gb  timer.o [1]
+timer_reset             0x000067a0    0x14  Code  Gb  timer.o [1]
+timer_restart           0x000067b4    0x18  Code  Gb  timer.o [1]
+timer_set               0x00006780    0x20  Code  Gb  timer.o [1]
+tmp16                   0x002011f8     0x2  Data  Lc  uip.o [1]
+tmpage                  0x0020120b     0x1  Data  Lc  uip_arp.o [1]
+trgetaddr               0x002011a0     0x4  Data  Gb  main.o [1]
+uip_acc32               0x002011e8     0x4  Data  Gb  uip.o [1]
+uip_add32               0x00000100   0x10c  Code  Gb  uip.o [1]
+uip_add_rcv_nxt         0x00000538    0x7c  Code  Lc  uip.o [1]
+uip_appdata             0x002011d8     0x4  Data  Gb  uip.o [1]
+uip_arp_arpin           0x00004ff4   0x178  Code  Gb  uip_arp.o [1]
+uip_arp_init            0x00004c1c    0x60  Code  Gb  uip_arp.o [1]
+uip_arp_ipin            0x00004f64    0x90  Code  Gb  uip_arp.o [1]
+uip_arp_out             0x0000516c   0x2d4  Code  Gb  uip_arp.o [1]
+uip_arp_timer           0x00004c7c    0xb0  Code  Gb  uip_arp.o [1]
+uip_arp_update          0x00004d2c   0x234  Code  Lc  uip_arp.o [1]
+uip_buf                 0x00200500   0x5e0  Data  Gb  uip.o [1]
+uip_chksum              0x000002b0    0x38  Code  Gb  uip.o [1]
+uip_conn                0x002011e0     0x4  Data  Gb  uip.o [1]
+uip_conns               0x00200f60    0xa8  Data  Gb  uip.o [1]
+uip_draddr              0x002011d0     0x4  Data  Gb  uip.o [1]
+uip_ethaddr             0x00201188     0x8  Data  Gb  uip.o [1]
+uip_flags               0x00201204     0x1  Data  Gb  uip.o [1]
+uip_hostaddr            0x002011cc     0x4  Data  Gb  uip.o [1]
+uip_init                0x00000414    0xa4  Code  Gb  uip.o [1]
+uip_ipchksum            0x000002e8    0x54  Code  Gb  uip.o [1]
+uip_len                 0x002011f0     0x2  Data  Gb  uip.o [1]
+uip_listen              0x000004bc    0x74  Code  Gb  uip.o [1]
+uip_listenports         0x002011f4     0x2  Data  Gb  uip.o [1]
+uip_netmask             0x002011d4     0x4  Data  Gb  uip.o [1]
+uip_ping                0x00001c60   0x240  Code  Gb  uip.o [1]
+uip_process             0x000005c8  0x1628  Code  Gb  uip.o [1]
+uip_sappdata            0x002011dc     0x4  Data  Gb  uip.o [1]
+uip_send                0x00001c0c    0x54  Code  Gb  uip.o [1]
+uip_slen                0x002011f2     0x2  Data  Gb  uip.o [1]
+uip_tcpchksum           0x00000400    0x14  Code  Gb  uip.o [1]
+unknown                 0x00001fe4    0x30  Code  Gb  shell.o [1]
+upper_layer_chksum      0x00000340    0xb0  Code  Lc  uip.o [1]
+wdt_init                0x00002f00    0x18  Code  Gb  main.o [1]
+write_CP2200            0x00003c48   0x174  Code  Gb  CP2200.o [1]
+
+
+[1] = E:\PROJECTs\ARM\ESL_LanPING\base_config_debug\Obj
+[2] = command line
+[3] = dl4t_al_in.a
+[4] = rt4t_al.a
+
+  27 596 bytes of readonly  code memory
+     616 bytes of readwrite code memory
+   2 280 bytes of readonly  data memory
+   4 644 bytes of readwrite data memory
+
+Errors: none
+Warnings: none

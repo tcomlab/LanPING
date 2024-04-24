@@ -1,0 +1,2344 @@
+###############################################################################
+#                                                                             #
+# IAR ANSI C/C++ Compiler V5.30.0.51174/W32 for ARM     11/Nov/2009  15:20:45 #
+# Copyright 1999-2009 IAR Systems AB.                                         #
+#                                                                             #
+#    Cpu mode     =  arm                                                      #
+#    Endian       =  little                                                   #
+#    Source file  =  E:\PROJECTs\ARM\ESL_LanPING\Sources\shell.c              #
+#    Command line =  E:\PROJECTs\ARM\ESL_LanPING\Sources\shell.c -D           #
+#                    PROTO_BORD -lC E:\PROJECTs\ARM\ESL_LanPING\base_config_d #
+#                    ebug\List\ -o E:\PROJECTs\ARM\ESL_LanPING\base_config_de #
+#                    bug\Obj\ --no_cse --no_unroll --no_inline                #
+#                    --no_code_motion --no_tbaa --no_clustering               #
+#                    --no_scheduling --debug --endian=little --cpu=ARM7TDMI   #
+#                    -e --fpu=None --dlib_config "C:\Program Files\IAR        #
+#                    Systems\Embedded Workbench 5.4\arm\INC\DLib_Config_Norma #
+#                    l.h" -I E:\PROJECTs\ARM\ESL_LanPING\startups\ -I         #
+#                    E:\PROJECTs\ARM\ESL_LanPING\startups\at91sam7s32\ -I     #
+#                    E:\PROJECTs\ARM\ESL_LanPING\Sources\ -I                  #
+#                    E:\PROJECTs\ARM\ESL_LanPING\Sources\uip\ -I "C:\Program  #
+#                    Files\IAR Systems\Embedded Workbench 5.4\arm\INC\"       #
+#                    --interwork --cpu_mode arm -On                           #
+#    List file    =  E:\PROJECTs\ARM\ESL_LanPING\base_config_debug\List\shell #
+#                    .lst                                                     #
+#    Object file  =  E:\PROJECTs\ARM\ESL_LanPING\base_config_debug\Obj\shell. #
+#                    o                                                        #
+#                                                                             #
+#                                                                             #
+###############################################################################
+
+E:\PROJECTs\ARM\ESL_LanPING\Sources\shell.c
+      1          //------------------------------------------------------------------
+      2          
+      3          #include "shell.h"
+      4          #include "main.h"
+
+   \                                 In section .text, align 4
+   \   __??Code32?? __intrinsic __code __interwork int atoi(char const *)
+   \                     atoi:
+   \   00000000   10402DE9           PUSH     {R4,LR}
+   \   00000004   0040B0E1           MOVS     R4,R0
+   \   00000008   0A20A0E3           MOV      R2,#+10
+   \   0000000C   0010A0E3           MOV      R1,#+0
+   \   00000010   0400B0E1           MOVS     R0,R4
+   \   00000014   ........           BL       __iar_Stoul
+   \   00000018   1040BDE8           POP      {R4,LR}
+   \   0000001C   1EFF2FE1           BX       LR               ;; return
+      5          #include "at91flash.h"
+      6          #include <string.h>
+      7          #include <stdio.h>
+      8          #include "timer.h"
+      9          
+     10          struct ptentry {
+     11            char *commandstr;
+     12            void (* pfunc)(char *str);
+     13          };
+     14          
+     15          #define SHELL_PROMPT "cmd#"
+
+   \                                 In section .bss, align 1
+     16          unsigned char autorization = 0;
+   \                     autorization:
+   \   00000000                      DS8 1
+
+   \                                 In section .bss, align 1
+     17          unsigned char DEBUG_TELNET=0;
+   \                     DEBUG_TELNET:
+   \   00000000                      DS8 1
+     18          #define DEVICE_STOP  1
+     19          #define DEVICE_START 0
+     20          extern unsigned char DEVICE_STATE;
+     21          extern unsigned char setting_buf[SETTING_BUF_SIZE];
+     22          extern void reset_switch (void);
+     23          extern struct uip_eth_addr eaddr;
+     24          extern void delay_ms( unsigned short delay);
+     25          extern unsigned int reboot_counter;
+     26          extern unsigned char server_visible;
+     27          extern clock_time_t  sec_counter;
+     28          /*---------------------------------------------------------------------------*/
+     29          /*---------------------------------------------------------------------------*/
+     30          //void inttostr(char *str, unsigned int i)
+     31          //{
+     32          //  str[0] = '0' + i / 100;
+     33          //  if(str[0] == '0') {
+     34          //    str[0] = ' ';
+     35          //  }
+     36          //  str[1] = '0' + (i / 10) % 10;
+     37          //  if(str[0] == ' ' && str[1] == '0') {
+     38          //    str[1] = ' ';
+     39          //  }
+     40          //  str[2] = '0' + i % 10;
+     41          //  str[3] = ' ';
+     42          //  str[4] = 0;
+     43          //}
+     44          /*---------------------------------------------------------------------------*/
+
+   \                                 In section .text, align 4, keep-with-next
+     45          void help(char *str)
+     46          {
+   \                     help:
+   \   00000000   10402DE9           PUSH     {R4,LR}
+   \   00000004   0040B0E1           MOVS     R4,R0
+     47            shell_output("show   - show settings","");
+   \   00000008   54108FE2           ADR      R1,??help_0      ;; ""
+   \   0000000C   54009FE5           LDR      R0,??help_0+0x4  ;; `?<Constant "show   - show settings">`
+   \   00000010   ........           BL       shell_output
+     48            //shell_prompt("\n");
+     49            shell_output("reboot - reboot equipment","");
+   \   00000014   48108FE2           ADR      R1,??help_0      ;; ""
+   \   00000018   4C009FE5           LDR      R0,??help_0+0x8  ;; `?<Constant "reboot - reboot equip...">`
+   \   0000001C   ........           BL       shell_output
+     50           // shell_prompt("\n");
+     51            shell_output("reload - reboot watch dog device","");
+   \   00000020   3C108FE2           ADR      R1,??help_0      ;; ""
+   \   00000024   44009FE5           LDR      R0,??help_0+0xC  ;; `?<Constant "reload - reboot watch...">`
+   \   00000028   ........           BL       shell_output
+     52           // shell_prompt("\n");
+     53            shell_output("stop   - stop monitoring network","");
+   \   0000002C   30108FE2           ADR      R1,??help_0      ;; ""
+   \   00000030   3C009FE5           LDR      R0,??help_0+0x10  ;; `?<Constant "stop   - stop monitor...">`
+   \   00000034   ........           BL       shell_output
+     54           // shell_prompt("\n");
+     55            shell_output("start  - start monitoring network","");
+   \   00000038   24108FE2           ADR      R1,??help_0      ;; ""
+   \   0000003C   34009FE5           LDR      R0,??help_0+0x14  ;; `?<Constant "start  - start monito...">`
+   \   00000040   ........           BL       shell_output
+     56           // shell_prompt("\n");
+     57            shell_output("set    - set device paramiter ","");
+   \   00000044   18108FE2           ADR      R1,??help_0      ;; ""
+   \   00000048   2C009FE5           LDR      R0,??help_0+0x18  ;; `?<Constant "set    - set device p...">`
+   \   0000004C   ........           BL       shell_output
+     58           // shell_prompt("\n");
+     59            shell_output("exit   - exit from telnet","");
+   \   00000050   0C108FE2           ADR      R1,??help_0      ;; ""
+   \   00000054   24009FE5           LDR      R0,??help_0+0x1C  ;; `?<Constant "exit   - exit from te...">`
+   \   00000058   ........           BL       shell_output
+     60          }
+   \   0000005C   1040BDE8           POP      {R4,LR}
+   \   00000060   1EFF2FE1           BX       LR               ;; return
+   \                     ??help_0:
+   \   00000064   00000000           DC8      "",+0,+0,+0
+   \   00000068   ........           DC32     `?<Constant "show   - show settings">`
+   \   0000006C   ........           DC32     `?<Constant "reboot - reboot equip...">`
+   \   00000070   ........           DC32     `?<Constant "reload - reboot watch...">`
+   \   00000074   ........           DC32     `?<Constant "stop   - stop monitor...">`
+   \   00000078   ........           DC32     `?<Constant "start  - start monito...">`
+   \   0000007C   ........           DC32     `?<Constant "set    - set device p...">`
+   \   00000080   ........           DC32     `?<Constant "exit   - exit from te...">`
+     61          //---------------------------------------------------------------------------------
+
+   \                                 In section .text, align 4, keep-with-next
+     62          void set_help(void)
+     63          {
+   \                     set_help:
+   \   00000000   00502DE9           PUSH     {R12,LR}
+     64            shell_output("ip xxx.xxx.xxx.xxx ","- device ip address ");
+   \   00000004   6C109FE5           LDR      R1,??set_help_0  ;; `?<Constant "- device ip address ">`
+   \   00000008   6C009FE5           LDR      R0,??set_help_0+0x4  ;; `?<Constant "ip xxx.xxx.xxx.xxx ">`
+   \   0000000C   ........           BL       shell_output
+     65           // shell_prompt("\n");
+     66            shell_output("mask xxx.xxx.xxx.xxx ","- device mask ");
+   \   00000010   68109FE5           LDR      R1,??set_help_0+0x8  ;; `?<Constant "- device mask ">`
+   \   00000014   68009FE5           LDR      R0,??set_help_0+0xC  ;; `?<Constant "mask xxx.xxx.xxx.xxx ">`
+   \   00000018   ........           BL       shell_output
+     67           // shell_prompt("\n");
+     68            shell_output("gw xxx.xxx.xxx.xxx ","- gateway ");
+   \   0000001C   64109FE5           LDR      R1,??set_help_0+0x10  ;; `?<Constant "- gateway ">`
+   \   00000020   64009FE5           LDR      R0,??set_help_0+0x14  ;; `?<Constant "gw xxx.xxx.xxx.xxx ">`
+   \   00000024   ........           BL       shell_output
+     69           // shell_prompt("\n");
+     70            shell_output("tar xxx.xxx.xxx.xxx ","- target device ");
+   \   00000028   60109FE5           LDR      R1,??set_help_0+0x18  ;; `?<Constant "- target device ">`
+   \   0000002C   60009FE5           LDR      R0,??set_help_0+0x1C  ;; `?<Constant "tar xxx.xxx.xxx.xxx ">`
+   \   00000030   ........           BL       shell_output
+     71           // shell_prompt("\n");
+     72            shell_output("period xx - send ","test packet period sec");
+   \   00000034   5C109FE5           LDR      R1,??set_help_0+0x20  ;; `?<Constant "test packet period sec">`
+   \   00000038   5C009FE5           LDR      R0,??set_help_0+0x24  ;; `?<Constant "period xx - send ">`
+   \   0000003C   ........           BL       shell_output
+     73          //  shell_prompt("\n");
+     74            shell_output("count xxx - send ","test packet ICMP request");
+   \   00000040   58109FE5           LDR      R1,??set_help_0+0x28  ;; `?<Constant "test packet ICMP request">`
+   \   00000044   58009FE5           LDR      R0,??set_help_0+0x2C  ;; `?<Constant "count xxx - send ">`
+   \   00000048   ........           BL       shell_output
+     75           // shell_prompt("\n");
+     76            shell_output("size xxxx - ICMP ","data bytes");
+   \   0000004C   54109FE5           LDR      R1,??set_help_0+0x30  ;; `?<Constant "data bytes">`
+   \   00000050   54009FE5           LDR      R0,??set_help_0+0x34  ;; `?<Constant "size xxxx - ICMP ">`
+   \   00000054   ........           BL       shell_output
+     77           // shell_prompt("\n");
+     78            shell_output("percent xxx - % ","bad ICMP packet");
+   \   00000058   50109FE5           LDR      R1,??set_help_0+0x38  ;; `?<Constant "bad ICMP packet">`
+   \   0000005C   50009FE5           LDR      R0,??set_help_0+0x3C  ;; `?<Constant "percent xxx - % ">`
+   \   00000060   ........           BL       shell_output
+     79           // shell_prompt("\n");
+     80            shell_output("time xxx - time ","reboot equipment");
+   \   00000064   4C109FE5           LDR      R1,??set_help_0+0x40  ;; `?<Constant "reboot equipment">`
+   \   00000068   4C009FE5           LDR      R0,??set_help_0+0x44  ;; `?<Constant "time xxx - time ">`
+   \   0000006C   ........           BL       shell_output
+     81          }
+   \   00000070   0140BDE8           POP      {R0,LR}
+   \   00000074   1EFF2FE1           BX       LR               ;; return
+   \                     ??set_help_0:
+   \   00000078   ........           DC32     `?<Constant "- device ip address ">`
+   \   0000007C   ........           DC32     `?<Constant "ip xxx.xxx.xxx.xxx ">`
+   \   00000080   ........           DC32     `?<Constant "- device mask ">`
+   \   00000084   ........           DC32     `?<Constant "mask xxx.xxx.xxx.xxx ">`
+   \   00000088   ........           DC32     `?<Constant "- gateway ">`
+   \   0000008C   ........           DC32     `?<Constant "gw xxx.xxx.xxx.xxx ">`
+   \   00000090   ........           DC32     `?<Constant "- target device ">`
+   \   00000094   ........           DC32     `?<Constant "tar xxx.xxx.xxx.xxx ">`
+   \   00000098   ........           DC32     `?<Constant "test packet period sec">`
+   \   0000009C   ........           DC32     `?<Constant "period xx - send ">`
+   \   000000A0   ........           DC32     `?<Constant "test packet ICMP request">`
+   \   000000A4   ........           DC32     `?<Constant "count xxx - send ">`
+   \   000000A8   ........           DC32     `?<Constant "data bytes">`
+   \   000000AC   ........           DC32     `?<Constant "size xxxx - ICMP ">`
+   \   000000B0   ........           DC32     `?<Constant "bad ICMP packet">`
+   \   000000B4   ........           DC32     `?<Constant "percent xxx - % ">`
+   \   000000B8   ........           DC32     `?<Constant "reboot equipment">`
+   \   000000BC   ........           DC32     `?<Constant "time xxx - time ">`
+     82          /*---------------------------------------------------------------------------*/
+
+   \                                 In section .text, align 4, keep-with-next
+     83          void unknown(char *str)
+     84          {
+   \                     unknown:
+   \   00000000   10402DE9           PUSH     {R4,LR}
+   \   00000004   0040B0E1           MOVS     R4,R0
+     85            if(strlen(str) > 0) {
+   \   00000008   0400B0E1           MOVS     R0,R4
+   \   0000000C   ........           BL       strlen
+   \   00000010   000050E3           CMP      R0,#+0
+   \   00000014   0200000A           BEQ      ??unknown_0
+     86              shell_output("Unknown command: ", str);
+   \   00000018   0410B0E1           MOVS     R1,R4
+   \   0000001C   08009FE5           LDR      R0,??unknown_1   ;; `?<Constant "Unknown command: ">`
+   \   00000020   ........           BL       shell_output
+     87            }
+     88          }
+   \                     ??unknown_0:
+   \   00000024   1040BDE8           POP      {R4,LR}
+   \   00000028   1EFF2FE1           BX       LR               ;; return
+   \                     ??unknown_1:
+   \   0000002C   ........           DC32     `?<Constant "Unknown command: ">`
+     89          /*---------------------------------------------------------------------------*/
+
+   \                                 In section .text, align 4, keep-with-next
+     90          void rebbot_eqip(char *str)
+     91          {
+   \                     rebbot_eqip:
+   \   00000000   10402DE9           PUSH     {R4,LR}
+   \   00000004   0040B0E1           MOVS     R4,R0
+     92            autorization = 0;
+   \   00000008   ........           LDR      R0,??DataTable37  ;; autorization
+   \   0000000C   0010A0E3           MOV      R1,#+0
+   \   00000010   0010C0E5           STRB     R1,[R0, #+0]
+     93            shell_output("resetting equipment...","");
+   \   00000014   1C108FE2           ADR      R1,??rebbot_eqip_0  ;; ""
+   \   00000018   1C009FE5           LDR      R0,??rebbot_eqip_0+0x4  ;; `?<Constant "resetting equipment...">`
+   \   0000001C   ........           BL       shell_output
+     94          	reset_switch();
+   \   00000020   ........           BL       reset_switch
+     95                  shell_output("resetting equipment...OK!!","");
+   \   00000024   0C108FE2           ADR      R1,??rebbot_eqip_0  ;; ""
+   \   00000028   10009FE5           LDR      R0,??rebbot_eqip_0+0x8  ;; `?<Constant "resetting equipment.....">`
+   \   0000002C   ........           BL       shell_output
+     96          }
+   \   00000030   1040BDE8           POP      {R4,LR}
+   \   00000034   1EFF2FE1           BX       LR               ;; return
+   \                     ??rebbot_eqip_0:
+   \   00000038   00000000           DC8      "",+0,+0,+0
+   \   0000003C   ........           DC32     `?<Constant "resetting equipment...">`
+   \   00000040   ........           DC32     `?<Constant "resetting equipment.....">`
+     97          /*---------------------------------------------------------------------------*/
+
+   \                                 In section .text, align 4, keep-with-next
+     98          void reload_device(char *str)
+     99          {
+   \                     reload_device:
+   \   00000000   10402DE9           PUSH     {R4,LR}
+   \   00000004   0040B0E1           MOVS     R4,R0
+    100            autorization = 0;
+   \   00000008   ........           LDR      R0,??DataTable37  ;; autorization
+   \   0000000C   0010A0E3           MOV      R1,#+0
+   \   00000010   0010C0E5           STRB     R1,[R0, #+0]
+    101          #ifdef DBG_BORD
+    102           shell_output("reboot....","");
+    103           (*void)0x0000;
+    104           while(1);
+    105          #else
+    106           shell_output("reboot....system","");
+   \   00000014   08108FE2           ADR      R1,??reload_device_0  ;; ""
+   \   00000018   08009FE5           LDR      R0,??reload_device_0+0x4  ;; `?<Constant "reboot....system">`
+   \   0000001C   ........           BL       shell_output
+    107           while(1);
+   \                     ??reload_device_1:
+   \   00000020   FEFFFFEA           B        ??reload_device_1
+   \                     ??reload_device_0:
+   \   00000024   00000000           DC8      "",+0,+0,+0
+   \   00000028   ........           DC32     `?<Constant "reboot....system">`
+    108          #endif
+    109          }
+    110          /*---------------------------------------------------------------------------*/
+
+   \                                 In section .text, align 4, keep-with-next
+    111          void stop_device(char *str)
+    112          {
+   \                     stop_device:
+   \   00000000   10402DE9           PUSH     {R4,LR}
+   \   00000004   0040B0E1           MOVS     R4,R0
+    113          	DEVICE_STATE = DEVICE_STOP;
+   \   00000008   ........           LDR      R0,??DataTable13  ;; DEVICE_STATE
+   \   0000000C   0110A0E3           MOV      R1,#+1
+   \   00000010   0010C0E5           STRB     R1,[R0, #+0]
+    114                  shell_output("pinger stopped","");
+   \   00000014   0C108FE2           ADR      R1,??stop_device_0  ;; ""
+   \   00000018   0C009FE5           LDR      R0,??stop_device_0+0x4  ;; `?<Constant "pinger stopped">`
+   \   0000001C   ........           BL       shell_output
+    115          }
+   \   00000020   1040BDE8           POP      {R4,LR}
+   \   00000024   1EFF2FE1           BX       LR               ;; return
+   \                     ??stop_device_0:
+   \   00000028   00000000           DC8      "",+0,+0,+0
+   \   0000002C   ........           DC32     `?<Constant "pinger stopped">`
+    116          /*---------------------------------------------------------------------------*/
+
+   \                                 In section .text, align 4, keep-with-next
+    117          void start_device(char *str)
+    118          {
+   \                     start_device:
+   \   00000000   10402DE9           PUSH     {R4,LR}
+   \   00000004   0040B0E1           MOVS     R4,R0
+    119          	DEVICE_STATE = DEVICE_START;
+   \   00000008   ........           LDR      R0,??DataTable13  ;; DEVICE_STATE
+   \   0000000C   0010A0E3           MOV      R1,#+0
+   \   00000010   0010C0E5           STRB     R1,[R0, #+0]
+    120                  shell_output("pinger started","");
+   \   00000014   0C108FE2           ADR      R1,??start_device_0  ;; ""
+   \   00000018   0C009FE5           LDR      R0,??start_device_0+0x4  ;; `?<Constant "pinger started">`
+   \   0000001C   ........           BL       shell_output
+    121          }
+   \   00000020   1040BDE8           POP      {R4,LR}
+   \   00000024   1EFF2FE1           BX       LR               ;; return
+   \                     ??start_device_0:
+   \   00000028   00000000           DC8      "",+0,+0,+0
+   \   0000002C   ........           DC32     `?<Constant "pinger started">`
+    122          /*---------------------------------------------------------------------------*/
+
+   \                                 In section .text, align 4, keep-with-next
+    123          char* ip_tostring (uip_ipaddr_t tempaddr)
+    124          {
+   \                     ip_tostring:
+   \   00000000   10402DE9           PUSH     {R4,LR}
+   \   00000004   0040B0E1           MOVS     R4,R0
+    125              static char asciiIP[16];
+    126          
+    127              sprintf(asciiIP, "%i.%i.%i.%i",
+    128                      (unsigned char)(tempaddr[0]),
+    129                      (unsigned char)(tempaddr[0] >> 8),
+    130                      (unsigned char)(tempaddr[1]),
+    131                      (unsigned char)(tempaddr[1] >> 8));
+   \   00000008   B200D4E1           LDRH     R0,[R4, #+2]
+   \   0000000C   2014B0E1           LSRS     R1,R0,#+8
+   \   00000010   FF1011E2           ANDS     R1,R1,#0xFF      ;; Zero extend
+   \   00000014   B200D4E1           LDRH     R0,[R4, #+2]
+   \   00000018   FF0010E2           ANDS     R0,R0,#0xFF      ;; Zero extend
+   \   0000001C   03002DE9           PUSH     {R0,R1}
+   \   00000020   B000D4E1           LDRH     R0,[R4, #+0]
+   \   00000024   2034B0E1           LSRS     R3,R0,#+8
+   \   00000028   FF3013E2           ANDS     R3,R3,#0xFF      ;; Zero extend
+   \   0000002C   B020D4E1           LDRH     R2,[R4, #+0]
+   \   00000030   FF2012E2           ANDS     R2,R2,#0xFF      ;; Zero extend
+   \   00000034   14109FE5           LDR      R1,??ip_tostring_0  ;; `?<Constant "%i.%i.%i.%i">`
+   \   00000038   14009FE5           LDR      R0,??ip_tostring_0+0x4  ;; ??asciiIP
+   \   0000003C   ........           BL       sprintf
+   \   00000040   08D08DE2           ADD      SP,SP,#+8        ;; stack cleaning
+    132          
+    133              return asciiIP;
+   \   00000044   08009FE5           LDR      R0,??ip_tostring_0+0x4  ;; ??asciiIP
+   \   00000048   1040BDE8           POP      {R4,LR}
+   \   0000004C   1EFF2FE1           BX       LR               ;; return
+   \                     ??ip_tostring_0:
+   \   00000050   ........           DC32     `?<Constant "%i.%i.%i.%i">`
+   \   00000054   ........           DC32     ??asciiIP
+    134          }
+
+   \                                 In section .bss, align 4
+   \                     ??asciiIP:
+   \   00000000                      DS8 16
+    135          /*-------------------------------------------------------------------------------*/
+
+   \                                 In section .text, align 4, keep-with-next
+    136          char stringtoip(int ofset,char* ipstr,unsigned char *ip )
+    137          {
+   \                     stringtoip:
+   \   00000000   00502DE9           PUSH     {R12,LR}
+   \   00000004   0030B0E1           MOVS     R3,R0
+    138                  unsigned int val,i;
+    139                  ipstr = ipstr + ofset;
+   \   00000008   011093E0           ADDS     R1,R3,R1
+    140                  for(i = 0; i < 4; i++)
+   \   0000000C   0000A0E3           MOV      R0,#+0
+   \   00000010   00C0B0E1           MOVS     R12,R0
+   \                     ??stringtoip_0:
+   \   00000014   04005CE3           CMP      R12,#+4
+   \   00000018   2100002A           BCS      ??stringtoip_1
+    141                  {
+    142                          if ((*ipstr != ' ')&&(*ipstr != '\0'))
+   \   0000001C   0000D1E5           LDRB     R0,[R1, #+0]
+   \   00000020   200050E3           CMP      R0,#+32
+   \   00000024   1C00000A           BEQ      ??stringtoip_2
+   \   00000028   0000D1E5           LDRB     R0,[R1, #+0]
+   \   0000002C   000050E3           CMP      R0,#+0
+   \   00000030   1900000A           BEQ      ??stringtoip_2
+    143                          {
+    144                                  val = 0;
+   \   00000034   0000A0E3           MOV      R0,#+0
+   \   00000038   00E0B0E1           MOVS     LR,R0
+    145                                  while ((*ipstr != '\0')&&(*ipstr != ' ')&& *ipstr != '.')
+   \                     ??stringtoip_3:
+   \   0000003C   0000D1E5           LDRB     R0,[R1, #+0]
+   \   00000040   000050E3           CMP      R0,#+0
+   \   00000044   0C00000A           BEQ      ??stringtoip_4
+   \   00000048   0000D1E5           LDRB     R0,[R1, #+0]
+   \   0000004C   200050E3           CMP      R0,#+32
+   \   00000050   0900000A           BEQ      ??stringtoip_4
+   \   00000054   0000D1E5           LDRB     R0,[R1, #+0]
+   \   00000058   2E0050E3           CMP      R0,#+46
+   \   0000005C   0600000A           BEQ      ??stringtoip_4
+    146                                  {
+    147                                          val *= 10;
+   \   00000060   0A00A0E3           MOV      R0,#+10
+   \   00000064   900E1EE0           MULS     LR,R0,LR
+    148                                          val += *ipstr - '0';
+   \   00000068   0000D1E5           LDRB     R0,[R1, #+0]
+   \   0000006C   300050E2           SUBS     R0,R0,#+48
+   \   00000070   0EE090E0           ADDS     LR,R0,LR
+    149                                          ipstr++;
+   \   00000074   011091E2           ADDS     R1,R1,#+1
+   \   00000078   EFFFFFEA           B        ??stringtoip_3
+    150                                  }
+    151                                  ip[i]= val;
+   \                     ??stringtoip_4:
+   \   0000007C   02E0CCE7           STRB     LR,[R12, +R2]
+    152                                  if ((*ipstr != '\0')&&(*ipstr != ' '))
+   \   00000080   0000D1E5           LDRB     R0,[R1, #+0]
+   \   00000084   000050E3           CMP      R0,#+0
+   \   00000088   0300000A           BEQ      ??stringtoip_5
+   \   0000008C   0000D1E5           LDRB     R0,[R1, #+0]
+   \   00000090   200050E3           CMP      R0,#+32
+   \   00000094   0000000A           BEQ      ??stringtoip_5
+    153                                  	ipstr++;
+   \   00000098   011091E2           ADDS     R1,R1,#+1
+    154                          }
+    155                  }
+   \                     ??stringtoip_5:
+   \                     ??stringtoip_2:
+   \   0000009C   01C09CE2           ADDS     R12,R12,#+1
+   \   000000A0   DBFFFFEA           B        ??stringtoip_0
+    156                  return 1;
+   \                     ??stringtoip_1:
+   \   000000A4   0100A0E3           MOV      R0,#+1
+   \   000000A8   0240BDE8           POP      {R1,LR}
+   \   000000AC   1EFF2FE1           BX       LR               ;; return
+    157          }
+    158          /*---------------------------------------------------------------------------*/
+
+   \                                 In section .text, align 4, keep-with-next
+    159          void show_device(char *str)
+    160          {
+   \                     show_device:
+   \   00000000   10402DE9           PUSH     {R4,LR}
+   \   00000004   10D04DE2           SUB      SP,SP,#+16
+   \   00000008   0040B0E1           MOVS     R4,R0
+    161            char param[10];
+    162            shell_output("-----------------------------------------------------","");
+   \   0000000C   6B1F8FE2           ADR      R1,??show_device_0  ;; ""
+   \   00000010   B4019FE5           LDR      R0,??show_device_0+0xC  ;; `?<Constant "---------------------...">`
+   \   00000014   ........           BL       shell_output
+    163            shell_output("Ip: ",ip_tostring(SET->IPDev));
+   \   00000018   ........           LDR      R0,??DataTable15  ;; setting_buf + 20
+   \   0000001C   ........           BL       ip_tostring
+   \   00000020   0010B0E1           MOVS     R1,R0
+   \   00000024   A4019FE5           LDR      R0,??show_device_0+0x10  ;; `?<Constant "Ip: ">`
+   \   00000028   ........           BL       shell_output
+    164            shell_output("Mask: ",ip_tostring(SET->NetMask));
+   \   0000002C   ........           LDR      R0,??DataTable16  ;; setting_buf + 24
+   \   00000030   ........           BL       ip_tostring
+   \   00000034   0010B0E1           MOVS     R1,R0
+   \   00000038   94019FE5           LDR      R0,??show_device_0+0x14  ;; `?<Constant "Mask: ">`
+   \   0000003C   ........           BL       shell_output
+    165            shell_output("GateWay: ",ip_tostring(SET->Geteway));
+   \   00000040   ........           LDR      R0,??DataTable17  ;; setting_buf + 28
+   \   00000044   ........           BL       ip_tostring
+   \   00000048   0010B0E1           MOVS     R1,R0
+   \   0000004C   84019FE5           LDR      R0,??show_device_0+0x18  ;; `?<Constant "GateWay: ">`
+   \   00000050   ........           BL       shell_output
+    166            shell_output("Target: ",ip_tostring(SET->Target));
+   \   00000054   ........           LDR      R0,??DataTable18  ;; setting_buf + 32
+   \   00000058   ........           BL       ip_tostring
+   \   0000005C   0010B0E1           MOVS     R1,R0
+   \   00000060   74019FE5           LDR      R0,??show_device_0+0x1C  ;; `?<Constant "Target: ">`
+   \   00000064   ........           BL       shell_output
+    167            sprintf(param,"%d sec",SET->time);
+   \   00000068   ........           LDR      R0,??DataTable27  ;; setting_buf + 42
+   \   0000006C   B020D0E1           LDRH     R2,[R0, #+0]
+   \   00000070   68119FE5           LDR      R1,??show_device_0+0x20  ;; `?<Constant "%d sec">`
+   \   00000074   0D00B0E1           MOVS     R0,SP
+   \   00000078   ........           BL       sprintf
+    168            shell_output("Reboot equipment time: ",param);
+   \   0000007C   0D10B0E1           MOVS     R1,SP
+   \   00000080   5C019FE5           LDR      R0,??show_device_0+0x24  ;; `?<Constant "Reboot equipment time: ">`
+   \   00000084   ........           BL       shell_output
+    169            sprintf(param,"%d sec",SET->period);
+   \   00000088   ........           LDR      R0,??DataTable25  ;; setting_buf + 36
+   \   0000008C   B020D0E1           LDRH     R2,[R0, #+0]
+   \   00000090   48119FE5           LDR      R1,??show_device_0+0x20  ;; `?<Constant "%d sec">`
+   \   00000094   0D00B0E1           MOVS     R0,SP
+   \   00000098   ........           BL       sprintf
+    170            shell_output("Ping interval: ",param);
+   \   0000009C   0D10B0E1           MOVS     R1,SP
+   \   000000A0   40019FE5           LDR      R0,??show_device_0+0x28  ;; `?<Constant "Ping interval: ">`
+   \   000000A4   ........           BL       shell_output
+    171            sprintf(param,"%d sec",SET->count);
+   \   000000A8   ........           LDR      R0,??DataTable24  ;; setting_buf + 38
+   \   000000AC   B020D0E1           LDRH     R2,[R0, #+0]
+   \   000000B0   28119FE5           LDR      R1,??show_device_0+0x20  ;; `?<Constant "%d sec">`
+   \   000000B4   0D00B0E1           MOVS     R0,SP
+   \   000000B8   ........           BL       sprintf
+    172            shell_output("ICMP send packet: ",param);
+   \   000000BC   0D10B0E1           MOVS     R1,SP
+   \   000000C0   24019FE5           LDR      R0,??show_device_0+0x2C  ;; `?<Constant "ICMP send packet: ">`
+   \   000000C4   ........           BL       shell_output
+    173            sprintf(param,"%d",SET->size);
+   \   000000C8   ........           LDR      R0,??DataTable23  ;; setting_buf + 44
+   \   000000CC   B020D0E1           LDRH     R2,[R0, #+0]
+   \   000000D0   EC108FE2           ADR      R1,??show_device_0+0x4  ;; 0x25, 0x64, 0x00, 0x00
+   \   000000D4   0D00B0E1           MOVS     R0,SP
+   \   000000D8   ........           BL       sprintf
+    174            shell_output("ICMP data: ",param);
+   \   000000DC   0D10B0E1           MOVS     R1,SP
+   \   000000E0   08019FE5           LDR      R0,??show_device_0+0x30  ;; `?<Constant "ICMP data: ">`
+   \   000000E4   ........           BL       shell_output
+    175            sprintf(param,"%d %%",SET->percent);
+   \   000000E8   ........           LDR      R0,??DataTable26  ;; setting_buf + 40
+   \   000000EC   B020D0E1           LDRH     R2,[R0, #+0]
+   \   000000F0   FC109FE5           LDR      R1,??show_device_0+0x34  ;; `?<Constant "%d %%">`
+   \   000000F4   0D00B0E1           MOVS     R0,SP
+   \   000000F8   ........           BL       sprintf
+    176            shell_output("Percent bad packet: ",param);
+   \   000000FC   0D10B0E1           MOVS     R1,SP
+   \   00000100   F0009FE5           LDR      R0,??show_device_0+0x38  ;; `?<Constant "Percent bad packet: ">`
+   \   00000104   ........           BL       shell_output
+    177            sprintf(param,"%d ",reboot_counter);
+   \   00000108   EC009FE5           LDR      R0,??show_device_0+0x3C  ;; reboot_counter
+   \   0000010C   002090E5           LDR      R2,[R0, #+0]
+   \   00000110   B0108FE2           ADR      R1,??show_device_0+0x8  ;; "%d "
+   \   00000114   0D00B0E1           MOVS     R0,SP
+   \   00000118   ........           BL       sprintf
+    178            shell_output("-----------------------------------------------------","");
+   \   0000011C   9C108FE2           ADR      R1,??show_device_0  ;; ""
+   \   00000120   A4009FE5           LDR      R0,??show_device_0+0xC  ;; `?<Constant "---------------------...">`
+   \   00000124   ........           BL       shell_output
+    179            shell_output("Reboot counter: ",param);
+   \   00000128   0D10B0E1           MOVS     R1,SP
+   \   0000012C   CC009FE5           LDR      R0,??show_device_0+0x40  ;; `?<Constant "Reboot counter: ">`
+   \   00000130   ........           BL       shell_output
+    180            if (server_visible) shell_output("Observed server visible: yes","");
+   \   00000134   C8009FE5           LDR      R0,??show_device_0+0x44  ;; server_visible
+   \   00000138   0000D0E5           LDRB     R0,[R0, #+0]
+   \   0000013C   000050E3           CMP      R0,#+0
+   \   00000140   0300000A           BEQ      ??show_device_1
+   \   00000144   74108FE2           ADR      R1,??show_device_0  ;; ""
+   \   00000148   B8009FE5           LDR      R0,??show_device_0+0x48  ;; `?<Constant "Observed server visib...">`
+   \   0000014C   ........           BL       shell_output
+   \   00000150   020000EA           B        ??show_device_2
+    181            else shell_output("Observed server visible: no","");
+   \                     ??show_device_1:
+   \   00000154   64108FE2           ADR      R1,??show_device_0  ;; ""
+   \   00000158   AC009FE5           LDR      R0,??show_device_0+0x4C  ;; `?<Constant "Observed server visib...">_1`
+   \   0000015C   ........           BL       shell_output
+    182            sprintf(param,"%d sec",sec_counter);
+   \                     ??show_device_2:
+   \   00000160   A8009FE5           LDR      R0,??show_device_0+0x50  ;; sec_counter
+   \   00000164   002090E5           LDR      R2,[R0, #+0]
+   \   00000168   70109FE5           LDR      R1,??show_device_0+0x20  ;; `?<Constant "%d sec">`
+   \   0000016C   0D00B0E1           MOVS     R0,SP
+   \   00000170   ........           BL       sprintf
+    183            shell_output("Time after inclusion: ",param);
+   \   00000174   0D10B0E1           MOVS     R1,SP
+   \   00000178   94009FE5           LDR      R0,??show_device_0+0x54  ;; `?<Constant "Time after inclusion: ">`
+   \   0000017C   ........           BL       shell_output
+    184            if (DEVICE_STATE) shell_output("Device state: stop","");
+   \   00000180   ........           LDR      R0,??DataTable13  ;; DEVICE_STATE
+   \   00000184   0000D0E5           LDRB     R0,[R0, #+0]
+   \   00000188   000050E3           CMP      R0,#+0
+   \   0000018C   0300000A           BEQ      ??show_device_3
+   \   00000190   28108FE2           ADR      R1,??show_device_0  ;; ""
+   \   00000194   7C009FE5           LDR      R0,??show_device_0+0x58  ;; `?<Constant "Device state: stop">`
+   \   00000198   ........           BL       shell_output
+   \   0000019C   020000EA           B        ??show_device_4
+    185            else shell_output("Device state: start/work","");
+   \                     ??show_device_3:
+   \   000001A0   18108FE2           ADR      R1,??show_device_0  ;; ""
+   \   000001A4   70009FE5           LDR      R0,??show_device_0+0x5C  ;; `?<Constant "Device state: start/work">`
+   \   000001A8   ........           BL       shell_output
+    186            shell_output("-----------------------------------------------------","");
+   \                     ??show_device_4:
+   \   000001AC   0C108FE2           ADR      R1,??show_device_0  ;; ""
+   \   000001B0   14009FE5           LDR      R0,??show_device_0+0xC  ;; `?<Constant "---------------------...">`
+   \   000001B4   ........           BL       shell_output
+    187          }
+   \   000001B8   1F40BDE8           POP      {R0-R4,LR}
+   \   000001BC   1EFF2FE1           BX       LR               ;; return
+   \                     ??show_device_0:
+   \   000001C0   00000000           DC8      "",+0,+0,+0
+   \   000001C4   25640000           DC8      0x25, 0x64, 0x00, 0x00
+   \   000001C8   25642000           DC8      "%d "
+   \   000001CC   ........           DC32     `?<Constant "---------------------...">`
+   \   000001D0   ........           DC32     `?<Constant "Ip: ">`
+   \   000001D4   ........           DC32     `?<Constant "Mask: ">`
+   \   000001D8   ........           DC32     `?<Constant "GateWay: ">`
+   \   000001DC   ........           DC32     `?<Constant "Target: ">`
+   \   000001E0   ........           DC32     `?<Constant "%d sec">`
+   \   000001E4   ........           DC32     `?<Constant "Reboot equipment time: ">`
+   \   000001E8   ........           DC32     `?<Constant "Ping interval: ">`
+   \   000001EC   ........           DC32     `?<Constant "ICMP send packet: ">`
+   \   000001F0   ........           DC32     `?<Constant "ICMP data: ">`
+   \   000001F4   ........           DC32     `?<Constant "%d %%">`
+   \   000001F8   ........           DC32     `?<Constant "Percent bad packet: ">`
+   \   000001FC   ........           DC32     reboot_counter
+   \   00000200   ........           DC32     `?<Constant "Reboot counter: ">`
+   \   00000204   ........           DC32     server_visible
+   \   00000208   ........           DC32     `?<Constant "Observed server visib...">`
+   \   0000020C   ........           DC32     `?<Constant "Observed server visib...">_1`
+   \   00000210   ........           DC32     sec_counter
+   \   00000214   ........           DC32     `?<Constant "Time after inclusion: ">`
+   \   00000218   ........           DC32     `?<Constant "Device state: stop">`
+   \   0000021C   ........           DC32     `?<Constant "Device state: start/work">`
+    188          //----------------------------------------------------------------------------//
+
+   \                                 In section .text, align 4, keep-with-next
+    189          int stringtoint(char *value)
+    190          {
+   \                     stringtoint:
+   \   00000000   38402DE9           PUSH     {R3-R5,LR}
+   \   00000004   0040B0E1           MOVS     R4,R0
+    191            int result;
+    192            if (!value || !(result = atoi(value)))
+   \   00000008   000054E3           CMP      R4,#+0
+   \   0000000C   0400000A           BEQ      ??stringtoint_0
+   \   00000010   0400B0E1           MOVS     R0,R4
+   \   00000014   ........           BL       atoi
+   \   00000018   0050B0E1           MOVS     R5,R0
+   \   0000001C   000050E3           CMP      R0,#+0
+   \   00000020   0100001A           BNE      ??stringtoint_1
+    193            /* the number 0 is always an incorrect result ... */
+    194            {
+    195              result = -1;
+   \                     ??stringtoint_0:
+   \   00000024   0000E0E3           MVN      R0,#+0
+   \   00000028   0050B0E1           MOVS     R5,R0
+    196            }
+    197            return(result);
+   \                     ??stringtoint_1:
+   \   0000002C   0500B0E1           MOVS     R0,R5
+   \   00000030   3240BDE8           POP      {R1,R4,R5,LR}
+   \   00000034   1EFF2FE1           BX       LR               ;; return
+    198          }
+    199          //----------------------------------------------------------------------------//
+
+   \                                 In section .text, align 4, keep-with-next
+    200          void set_parametr (char *str)
+    201          {
+   \                     set_parametr:
+   \   00000000   F8402DE9           PUSH     {R3-R7,LR}
+   \   00000004   0070B0E1           MOVS     R7,R0
+    202              unsigned char options = 0,i=0;
+   \   00000008   0000A0E3           MOV      R0,#+0
+   \   0000000C   0040B0E1           MOVS     R4,R0
+   \   00000010   0000A0E3           MOV      R0,#+0
+   \   00000014   0050B0E1           MOVS     R5,R0
+    203              unsigned short tmp=0;
+   \   00000018   0000A0E3           MOV      R0,#+0
+   \   0000001C   0060B0E1           MOVS     R6,R0
+    204              unsigned char ip[4];//,string[11];
+    205              str = str + 3; // убираем set
+   \   00000020   037097E2           ADDS     R7,R7,#+3
+    206              while(*str++ > 0) // Парсим строку и ищим наши настройки
+   \                     ??set_parametr_0:
+   \   00000024   0700B0E1           MOVS     R0,R7
+   \   00000028   017090E2           ADDS     R7,R0,#+1
+   \   0000002C   0000D0E5           LDRB     R0,[R0, #+0]
+   \   00000030   010050E3           CMP      R0,#+1
+   \   00000034   0E01003A           BCC      ??set_parametr_1
+    207              {
+    208              //----------------------------------------------------------------------------//
+    209                if (strncmp(str,"help",4)==0)
+   \   00000038   0420A0E3           MOV      R2,#+4
+   \   0000003C   ........           LDR      R1,??DataTable29  ;; `?<Constant "help">`
+   \   00000040   0700B0E1           MOVS     R0,R7
+   \   00000044   ........           BL       strncmp
+   \   00000048   000050E3           CMP      R0,#+0
+   \   0000004C   0100001A           BNE      ??set_parametr_2
+    210                {
+    211              	  set_help();
+   \   00000050   ........           BL       set_help
+    212              	  return;
+   \   00000054   1F0100EA           B        ??set_parametr_3
+    213                }
+    214                //---------------------------------------------------------------------------//
+    215                if (strncmp(str,"ip",2)==0)
+   \                     ??set_parametr_2:
+   \   00000058   0220A0E3           MOV      R2,#+2
+   \   0000005C   F01F8FE2           ADR      R1,??set_parametr_4  ;; 0x69, 0x70, 0x00, 0x00
+   \   00000060   0700B0E1           MOVS     R0,R7
+   \   00000064   ........           BL       strncmp
+   \   00000068   000050E3           CMP      R0,#+0
+   \   0000006C   1500001A           BNE      ??set_parametr_5
+    216                {
+    217              	 if (stringtoip(3,str,ip))
+   \   00000070   0D20B0E1           MOVS     R2,SP
+   \   00000074   0710B0E1           MOVS     R1,R7
+   \   00000078   0300A0E3           MOV      R0,#+3
+   \   0000007C   ........           BL       stringtoip
+   \   00000080   000050E3           CMP      R0,#+0
+   \   00000084   0C00000A           BEQ      ??set_parametr_6
+    218              	 {
+    219              		 SET->IPDev[0] = (ip[0])|(ip[1]<<8);
+   \   00000088   0000DDE5           LDRB     R0,[SP, #+0]
+   \   0000008C   0110DDE5           LDRB     R1,[SP, #+1]
+   \   00000090   010490E1           ORRS     R0,R0,R1, LSL #+8
+   \   00000094   ........           LDR      R1,??DataTable15  ;; setting_buf + 20
+   \   00000098   B000C1E1           STRH     R0,[R1, #+0]
+    220              		 SET->IPDev[1] = (ip[2])|(ip[3]<<8);
+   \   0000009C   0200DDE5           LDRB     R0,[SP, #+2]
+   \   000000A0   0310DDE5           LDRB     R1,[SP, #+3]
+   \   000000A4   010490E1           ORRS     R0,R0,R1, LSL #+8
+   \   000000A8   3C149FE5           LDR      R1,??set_parametr_7+0xC  ;; setting_buf + 22
+   \   000000AC   B000C1E1           STRH     R0,[R1, #+0]
+    221              		 options = 1;
+   \   000000B0   0100A0E3           MOV      R0,#+1
+   \   000000B4   0040B0E1           MOVS     R4,R0
+   \   000000B8   020000EA           B        ??set_parametr_8
+    222              	 }
+    223              	 else  shell_output("wrong argument", "IP address");
+   \                     ??set_parametr_6:
+   \   000000BC   2C149FE5           LDR      R1,??set_parametr_7+0x10  ;; `?<Constant "IP address">`
+   \   000000C0   2C049FE5           LDR      R0,??set_parametr_7+0x14  ;; `?<Constant "wrong argument">`
+   \   000000C4   ........           BL       shell_output
+    224                }
+    225                //----------------------------------------------------------------------------//
+    226                if (strncmp(str,"mask",4)==0)
+   \                     ??set_parametr_8:
+   \                     ??set_parametr_5:
+   \   000000C8   0420A0E3           MOV      R2,#+4
+   \   000000CC   24149FE5           LDR      R1,??set_parametr_7+0x18  ;; `?<Constant "mask">`
+   \   000000D0   0700B0E1           MOVS     R0,R7
+   \   000000D4   ........           BL       strncmp
+   \   000000D8   000050E3           CMP      R0,#+0
+   \   000000DC   1600001A           BNE      ??set_parametr_9
+    227                {
+    228              	 if (stringtoip(5,str,ip))
+   \   000000E0   0D20B0E1           MOVS     R2,SP
+   \   000000E4   0710B0E1           MOVS     R1,R7
+   \   000000E8   0500A0E3           MOV      R0,#+5
+   \   000000EC   ........           BL       stringtoip
+   \   000000F0   000050E3           CMP      R0,#+0
+   \   000000F4   0C00000A           BEQ      ??set_parametr_10
+    229              	 {
+    230          			 SET->NetMask[0] = (ip[0])|(ip[1]<<8);
+   \   000000F8   0000DDE5           LDRB     R0,[SP, #+0]
+   \   000000FC   0110DDE5           LDRB     R1,[SP, #+1]
+   \   00000100   010490E1           ORRS     R0,R0,R1, LSL #+8
+   \   00000104   ........           LDR      R1,??DataTable16  ;; setting_buf + 24
+   \   00000108   B000C1E1           STRH     R0,[R1, #+0]
+    231          			 SET->NetMask[1] = (ip[2])|(ip[3]<<8);
+   \   0000010C   0200DDE5           LDRB     R0,[SP, #+2]
+   \   00000110   0310DDE5           LDRB     R1,[SP, #+3]
+   \   00000114   010490E1           ORRS     R0,R0,R1, LSL #+8
+   \   00000118   DC139FE5           LDR      R1,??set_parametr_7+0x1C  ;; setting_buf + 26
+   \   0000011C   B000C1E1           STRH     R0,[R1, #+0]
+    232          			 options = 1;
+   \   00000120   0100A0E3           MOV      R0,#+1
+   \   00000124   0040B0E1           MOVS     R4,R0
+   \   00000128   030000EA           B        ??set_parametr_9
+    233              	 }
+    234              	 else  {shell_output("wrong argument", "Mask address"); return;}
+   \                     ??set_parametr_10:
+   \   0000012C   CC139FE5           LDR      R1,??set_parametr_7+0x20  ;; `?<Constant "Mask address">`
+   \   00000130   BC039FE5           LDR      R0,??set_parametr_7+0x14  ;; `?<Constant "wrong argument">`
+   \   00000134   ........           BL       shell_output
+   \   00000138   E60000EA           B        ??set_parametr_3
+    235                }
+    236                //----------------------------------------------------------------------------//
+    237                if (strncmp(str,"gw",2)==0)
+   \                     ??set_parametr_9:
+   \   0000013C   0220A0E3           MOV      R2,#+2
+   \   00000140   E61F8FE2           ADR      R1,??set_parametr_7  ;; 0x67, 0x77, 0x00, 0x00
+   \   00000144   0700B0E1           MOVS     R0,R7
+   \   00000148   ........           BL       strncmp
+   \   0000014C   000050E3           CMP      R0,#+0
+   \   00000150   1600001A           BNE      ??set_parametr_11
+    238                {
+    239              	 if (stringtoip(3,str,ip))
+   \   00000154   0D20B0E1           MOVS     R2,SP
+   \   00000158   0710B0E1           MOVS     R1,R7
+   \   0000015C   0300A0E3           MOV      R0,#+3
+   \   00000160   ........           BL       stringtoip
+   \   00000164   000050E3           CMP      R0,#+0
+   \   00000168   0C00000A           BEQ      ??set_parametr_12
+    240              	 {
+    241          			 SET->Geteway[0] = (ip[0])|(ip[1]<<8);
+   \   0000016C   0000DDE5           LDRB     R0,[SP, #+0]
+   \   00000170   0110DDE5           LDRB     R1,[SP, #+1]
+   \   00000174   010490E1           ORRS     R0,R0,R1, LSL #+8
+   \   00000178   ........           LDR      R1,??DataTable17  ;; setting_buf + 28
+   \   0000017C   B000C1E1           STRH     R0,[R1, #+0]
+    242          			 SET->Geteway[1] = (ip[2])|(ip[3]<<8);
+   \   00000180   0200DDE5           LDRB     R0,[SP, #+2]
+   \   00000184   0310DDE5           LDRB     R1,[SP, #+3]
+   \   00000188   010490E1           ORRS     R0,R0,R1, LSL #+8
+   \   0000018C   70139FE5           LDR      R1,??set_parametr_7+0x24  ;; setting_buf + 30
+   \   00000190   B000C1E1           STRH     R0,[R1, #+0]
+    243          			 options = 1;
+   \   00000194   0100A0E3           MOV      R0,#+1
+   \   00000198   0040B0E1           MOVS     R4,R0
+   \   0000019C   030000EA           B        ??set_parametr_11
+    244              	 }
+    245          	     else {shell_output("wrong argument", "Gateway address"); return;}
+   \                     ??set_parametr_12:
+   \   000001A0   60139FE5           LDR      R1,??set_parametr_7+0x28  ;; `?<Constant "Gateway address">`
+   \   000001A4   48039FE5           LDR      R0,??set_parametr_7+0x14  ;; `?<Constant "wrong argument">`
+   \   000001A8   ........           BL       shell_output
+   \   000001AC   C90000EA           B        ??set_parametr_3
+    246                }
+    247                //----------------------------------------------------------------------------//
+    248                if (strncmp(str,"tar",3)==0)
+   \                     ??set_parametr_11:
+   \   000001B0   0320A0E3           MOV      R2,#+3
+   \   000001B4   CA1F8FE2           ADR      R1,??set_parametr_7+0x4  ;; "tar"
+   \   000001B8   0700B0E1           MOVS     R0,R7
+   \   000001BC   ........           BL       strncmp
+   \   000001C0   000050E3           CMP      R0,#+0
+   \   000001C4   1600001A           BNE      ??set_parametr_13
+    249                {
+    250              	 if(stringtoip(4,str,ip))
+   \   000001C8   0D20B0E1           MOVS     R2,SP
+   \   000001CC   0710B0E1           MOVS     R1,R7
+   \   000001D0   0400A0E3           MOV      R0,#+4
+   \   000001D4   ........           BL       stringtoip
+   \   000001D8   000050E3           CMP      R0,#+0
+   \   000001DC   0C00000A           BEQ      ??set_parametr_14
+    251              	 {
+    252          			 SET->Target[0] = (ip[0])|(ip[1]<<8);
+   \   000001E0   0000DDE5           LDRB     R0,[SP, #+0]
+   \   000001E4   0110DDE5           LDRB     R1,[SP, #+1]
+   \   000001E8   010490E1           ORRS     R0,R0,R1, LSL #+8
+   \   000001EC   ........           LDR      R1,??DataTable18  ;; setting_buf + 32
+   \   000001F0   B000C1E1           STRH     R0,[R1, #+0]
+    253          			 SET->Target[1] = (ip[2])|(ip[3]<<8);
+   \   000001F4   0200DDE5           LDRB     R0,[SP, #+2]
+   \   000001F8   0310DDE5           LDRB     R1,[SP, #+3]
+   \   000001FC   010490E1           ORRS     R0,R0,R1, LSL #+8
+   \   00000200   04139FE5           LDR      R1,??set_parametr_7+0x2C  ;; setting_buf + 34
+   \   00000204   B000C1E1           STRH     R0,[R1, #+0]
+    254          			 options = 1;
+   \   00000208   0100A0E3           MOV      R0,#+1
+   \   0000020C   0040B0E1           MOVS     R4,R0
+   \   00000210   030000EA           B        ??set_parametr_13
+    255                   }
+    256              	 else  {shell_output("wrong argument", "Target ip address"); return;}
+   \                     ??set_parametr_14:
+   \   00000214   F4129FE5           LDR      R1,??set_parametr_7+0x30  ;; `?<Constant "Target ip address">`
+   \   00000218   D4029FE5           LDR      R0,??set_parametr_7+0x14  ;; `?<Constant "wrong argument">`
+   \   0000021C   ........           BL       shell_output
+   \   00000220   AC0000EA           B        ??set_parametr_3
+    257                }
+    258                //----------------------------------------------------------------------------//
+    259                if (strncmp(str,"login",5)==0)
+   \                     ??set_parametr_13:
+   \   00000224   0520A0E3           MOV      R2,#+5
+   \   00000228   E4129FE5           LDR      R1,??set_parametr_7+0x34  ;; `?<Constant "login">`
+   \   0000022C   0700B0E1           MOVS     R0,R7
+   \   00000230   ........           BL       strncmp
+   \   00000234   000050E3           CMP      R0,#+0
+   \   00000238   1500001A           BNE      ??set_parametr_15
+    260                {
+    261              	  str = str + 5;
+   \   0000023C   057097E2           ADDS     R7,R7,#+5
+    262              	  i = 0;
+   \   00000240   0000A0E3           MOV      R0,#+0
+   \   00000244   0050B0E1           MOVS     R5,R0
+    263              	  while(*str++ > '\0')
+   \                     ??set_parametr_16:
+   \   00000248   0700B0E1           MOVS     R0,R7
+   \   0000024C   017090E2           ADDS     R7,R0,#+1
+   \   00000250   0000D0E5           LDRB     R0,[R0, #+0]
+   \   00000254   010050E3           CMP      R0,#+1
+   \   00000258   0600003A           BCC      ??set_parametr_17
+    264              	  {
+    265          			SET->login[i] = (*str);
+   \   0000025C   0500B0E1           MOVS     R0,R5
+   \   00000260   FF0010E2           ANDS     R0,R0,#0xFF      ;; Zero extend
+   \   00000264   ........           LDR      R1,??DataTable31  ;; setting_buf
+   \   00000268   0020D7E5           LDRB     R2,[R7, #+0]
+   \   0000026C   0120C0E7           STRB     R2,[R0, +R1]
+    266                                  i++;
+   \   00000270   015095E2           ADDS     R5,R5,#+1
+   \   00000274   F3FFFFEA           B        ??set_parametr_16
+    267              	  }
+    268                    SET->login[i] = '\0'; 
+   \                     ??set_parametr_17:
+   \   00000278   0500B0E1           MOVS     R0,R5
+   \   0000027C   FF0010E2           ANDS     R0,R0,#0xFF      ;; Zero extend
+   \   00000280   ........           LDR      R1,??DataTable31  ;; setting_buf
+   \   00000284   0020A0E3           MOV      R2,#+0
+   \   00000288   0120C0E7           STRB     R2,[R0, +R1]
+    269                    options = 1;
+   \   0000028C   0100A0E3           MOV      R0,#+1
+   \   00000290   0040B0E1           MOVS     R4,R0
+    270                }
+    271                //----------------------------------------------------------------------------//
+    272                if (strncmp(str,"passwd",6)==0)
+   \                     ??set_parametr_15:
+   \   00000294   0620A0E3           MOV      R2,#+6
+   \   00000298   78129FE5           LDR      R1,??set_parametr_7+0x38  ;; `?<Constant "passwd">`
+   \   0000029C   0700B0E1           MOVS     R0,R7
+   \   000002A0   ........           BL       strncmp
+   \   000002A4   000050E3           CMP      R0,#+0
+   \   000002A8   1700001A           BNE      ??set_parametr_18
+    273                {
+    274                    str = str + 6;
+   \   000002AC   067097E2           ADDS     R7,R7,#+6
+    275              	  i = 0;
+   \   000002B0   0000A0E3           MOV      R0,#+0
+   \   000002B4   0050B0E1           MOVS     R5,R0
+    276              	  while(*str++ > '\0')
+   \                     ??set_parametr_19:
+   \   000002B8   0700B0E1           MOVS     R0,R7
+   \   000002BC   017090E2           ADDS     R7,R0,#+1
+   \   000002C0   0000D0E5           LDRB     R0,[R0, #+0]
+   \   000002C4   010050E3           CMP      R0,#+1
+   \   000002C8   0700003A           BCC      ??set_parametr_20
+    277              	  {
+    278          			SET->password[i] = (*str);
+   \   000002CC   0500B0E1           MOVS     R0,R5
+   \   000002D0   FF0010E2           ANDS     R0,R0,#0xFF      ;; Zero extend
+   \   000002D4   ........           LDR      R1,??DataTable31  ;; setting_buf
+   \   000002D8   010090E0           ADDS     R0,R0,R1
+   \   000002DC   0010D7E5           LDRB     R1,[R7, #+0]
+   \   000002E0   0A10C0E5           STRB     R1,[R0, #+10]
+    279                                  i++;
+   \   000002E4   015095E2           ADDS     R5,R5,#+1
+   \   000002E8   F2FFFFEA           B        ??set_parametr_19
+    280              	  }
+    281                    SET->password[i] = '\0'; 
+   \                     ??set_parametr_20:
+   \   000002EC   0500B0E1           MOVS     R0,R5
+   \   000002F0   FF0010E2           ANDS     R0,R0,#0xFF      ;; Zero extend
+   \   000002F4   ........           LDR      R1,??DataTable31  ;; setting_buf
+   \   000002F8   010090E0           ADDS     R0,R0,R1
+   \   000002FC   0010A0E3           MOV      R1,#+0
+   \   00000300   0A10C0E5           STRB     R1,[R0, #+10]
+    282                    options = 1;
+   \   00000304   0100A0E3           MOV      R0,#+1
+   \   00000308   0040B0E1           MOVS     R4,R0
+    283                }
+    284                //----------------------------------------------------------------------------//
+    285                if(strncmp(str,"size",4)==0)
+   \                     ??set_parametr_18:
+   \   0000030C   0420A0E3           MOV      R2,#+4
+   \   00000310   04129FE5           LDR      R1,??set_parametr_7+0x3C  ;; `?<Constant "size">`
+   \   00000314   0700B0E1           MOVS     R0,R7
+   \   00000318   ........           BL       strncmp
+   \   0000031C   000050E3           CMP      R0,#+0
+   \   00000320   1100001A           BNE      ??set_parametr_21
+    286                {
+    287                    str = str + 5;
+   \   00000324   057097E2           ADDS     R7,R7,#+5
+    288                    tmp = stringtoint(str);
+   \   00000328   0700B0E1           MOVS     R0,R7
+   \   0000032C   ........           BL       stringtoint
+   \   00000330   0060B0E1           MOVS     R6,R0
+    289                    if (tmp > 1024)
+   \   00000334   0100A0E3           MOV      R0,#+1
+   \   00000338   400E80E3           ORR      R0,R0,#0x400
+   \   0000033C   0668A0E1           MOV      R6,R6, LSL #+16
+   \   00000340   2668B0E1           MOVS     R6,R6, LSR #+16
+   \   00000344   000056E1           CMP      R6,R0
+   \   00000348   0300003A           BCC      ??set_parametr_22
+    290                    {
+    291                  	  shell_output("errore:max size 1024 byte", "");
+   \   0000034C   651F8FE2           ADR      R1,??set_parametr_7+0x8  ;; ""
+   \   00000350   C8019FE5           LDR      R0,??set_parametr_7+0x40  ;; `?<Constant "errore:max size 1024 ...">`
+   \   00000354   ........           BL       shell_output
+    292                  	  return;
+   \   00000358   5E0000EA           B        ??set_parametr_3
+    293                    }
+    294                    SET->size = tmp;
+   \                     ??set_parametr_22:
+   \   0000035C   ........           LDR      R0,??DataTable23  ;; setting_buf + 44
+   \   00000360   B060C0E1           STRH     R6,[R0, #+0]
+    295                    options = 1;
+   \   00000364   0100A0E3           MOV      R0,#+1
+   \   00000368   0040B0E1           MOVS     R4,R0
+    296                }
+    297                //----------------------------------------------------------------------------//
+    298                if(strncmp(str,"count",5)==0)
+   \                     ??set_parametr_21:
+   \   0000036C   0520A0E3           MOV      R2,#+5
+   \   00000370   AC119FE5           LDR      R1,??set_parametr_7+0x44  ;; `?<Constant "count">`
+   \   00000374   0700B0E1           MOVS     R0,R7
+   \   00000378   ........           BL       strncmp
+   \   0000037C   000050E3           CMP      R0,#+0
+   \   00000380   0700001A           BNE      ??set_parametr_23
+    299                {
+    300                    str = str + 6;
+   \   00000384   067097E2           ADDS     R7,R7,#+6
+    301                    tmp = stringtoint(str);
+   \   00000388   0700B0E1           MOVS     R0,R7
+   \   0000038C   ........           BL       stringtoint
+   \   00000390   0060B0E1           MOVS     R6,R0
+    302                    //if (tmp > 1024)
+    303                    //{
+    304                  	//  shell_output("errore:max size 1024 byte", "");
+    305                    //	  return;
+    306                    //}
+    307                    SET->count = tmp;
+   \   00000394   ........           LDR      R0,??DataTable24  ;; setting_buf + 38
+   \   00000398   B060C0E1           STRH     R6,[R0, #+0]
+    308                    options = 1;
+   \   0000039C   0100A0E3           MOV      R0,#+1
+   \   000003A0   0040B0E1           MOVS     R4,R0
+    309                }
+    310                //----------------------------------------------------------------------------//
+    311                if(strncmp(str,"period",6)==0)
+   \                     ??set_parametr_23:
+   \   000003A4   0620A0E3           MOV      R2,#+6
+   \   000003A8   78119FE5           LDR      R1,??set_parametr_7+0x48  ;; `?<Constant "period">`
+   \   000003AC   0700B0E1           MOVS     R0,R7
+   \   000003B0   ........           BL       strncmp
+   \   000003B4   000050E3           CMP      R0,#+0
+   \   000003B8   0700001A           BNE      ??set_parametr_24
+    312                {
+    313                    str = str + 7;
+   \   000003BC   077097E2           ADDS     R7,R7,#+7
+    314                    tmp = stringtoint(str);
+   \   000003C0   0700B0E1           MOVS     R0,R7
+   \   000003C4   ........           BL       stringtoint
+   \   000003C8   0060B0E1           MOVS     R6,R0
+    315                    //if (tmp > 1024)
+    316                    //{
+    317                  	//  shell_output("errore:max size 1024 byte", "");
+    318                    //	  return;
+    319                    //}
+    320                    SET->period = tmp;
+   \   000003CC   ........           LDR      R0,??DataTable25  ;; setting_buf + 36
+   \   000003D0   B060C0E1           STRH     R6,[R0, #+0]
+    321                    options = 1;
+   \   000003D4   0100A0E3           MOV      R0,#+1
+   \   000003D8   0040B0E1           MOVS     R4,R0
+    322                }
+    323                //----------------------------------------------------------------------------//
+    324                if(strncmp(str,"percent",7)==0)
+   \                     ??set_parametr_24:
+   \   000003DC   0720A0E3           MOV      R2,#+7
+   \   000003E0   44119FE5           LDR      R1,??set_parametr_7+0x4C  ;; `?<Constant "percent">`
+   \   000003E4   0700B0E1           MOVS     R0,R7
+   \   000003E8   ........           BL       strncmp
+   \   000003EC   000050E3           CMP      R0,#+0
+   \   000003F0   1000001A           BNE      ??set_parametr_25
+    325                {
+    326                    str = str + 8;
+   \   000003F4   087097E2           ADDS     R7,R7,#+8
+    327                    tmp = stringtoint(str);
+   \   000003F8   0700B0E1           MOVS     R0,R7
+   \   000003FC   ........           BL       stringtoint
+   \   00000400   0060B0E1           MOVS     R6,R0
+    328                    if (tmp > 100)
+   \   00000404   0668A0E1           MOV      R6,R6, LSL #+16
+   \   00000408   2668B0E1           MOVS     R6,R6, LSR #+16
+   \   0000040C   650056E3           CMP      R6,#+101
+   \   00000410   0400003A           BCC      ??set_parametr_26
+    329                    {
+    330                  	  shell_output("errore:max parameter 100%", "");
+   \   00000414   CC108FE2           ADR      R1,??set_parametr_7+0x8  ;; ""
+   \   00000418   10019FE5           LDR      R0,??set_parametr_7+0x50  ;; `?<Constant "errore:max parameter ...">`
+   \   0000041C   ........           BL       shell_output
+    331                    	  return;
+   \   00000420   2C0000EA           B        ??set_parametr_3
+   \                     ??set_parametr_4:
+   \   00000424   69700000           DC8      0x69, 0x70, 0x00, 0x00
+    332                    }
+    333                    SET->percent = tmp;
+   \                     ??set_parametr_26:
+   \   00000428   ........           LDR      R0,??DataTable26  ;; setting_buf + 40
+   \   0000042C   B060C0E1           STRH     R6,[R0, #+0]
+    334                    options = 1;
+   \   00000430   0100A0E3           MOV      R0,#+1
+   \   00000434   0040B0E1           MOVS     R4,R0
+    335                }
+    336                //----------------------------------------------------------------------------//
+    337                if(strncmp(str,"time",4)==0)
+   \                     ??set_parametr_25:
+   \   00000438   0420A0E3           MOV      R2,#+4
+   \   0000043C   F0109FE5           LDR      R1,??set_parametr_7+0x54  ;; `?<Constant "time">`
+   \   00000440   0700B0E1           MOVS     R0,R7
+   \   00000444   ........           BL       strncmp
+   \   00000448   000050E3           CMP      R0,#+0
+   \   0000044C   0700001A           BNE      ??set_parametr_27
+    338                {
+    339                    str = str + 5;
+   \   00000450   057097E2           ADDS     R7,R7,#+5
+    340                    tmp = stringtoint(str);
+   \   00000454   0700B0E1           MOVS     R0,R7
+   \   00000458   ........           BL       stringtoint
+   \   0000045C   0060B0E1           MOVS     R6,R0
+    341                    //if (tmp > 100)
+    342                    //{
+    343                  //	  shell_output("errore:max parameter 100%", "");
+    344                    //	  return;
+    345                    //}
+    346                    SET->time = tmp;
+   \   00000460   ........           LDR      R0,??DataTable27  ;; setting_buf + 42
+   \   00000464   B060C0E1           STRH     R6,[R0, #+0]
+    347                    options = 1;
+   \   00000468   0100A0E3           MOV      R0,#+1
+   \   0000046C   0040B0E1           MOVS     R4,R0
+   \                     ??set_parametr_27:
+   \   00000470   EBFEFFEA           B        ??set_parametr_0
+    348                }
+    349                //----------------------------------------------------------------------------//
+    350              }
+    351              //----------------------------------------------------------------------------//
+    352          	if (!options) shell_output("wrong argument", "");
+   \                     ??set_parametr_1:
+   \   00000474   FF4014E2           ANDS     R4,R4,#0xFF      ;; Zero extend
+   \   00000478   000054E3           CMP      R4,#+0
+   \   0000047C   0300001A           BNE      ??set_parametr_28
+   \   00000480   60108FE2           ADR      R1,??set_parametr_7+0x8  ;; ""
+   \   00000484   68009FE5           LDR      R0,??set_parametr_7+0x14  ;; `?<Constant "wrong argument">`
+   \   00000488   ........           BL       shell_output
+   \   0000048C   110000EA           B        ??set_parametr_29
+    353                  else
+    354                  	{
+    355                          delay_ms(100);
+   \                     ??set_parametr_28:
+   \   00000490   6400A0E3           MOV      R0,#+100
+   \   00000494   ........           BL       delay_ms
+    356                          __disable_interrupt();
+   \   00000498   00000FE1           MRS      R0,CPSR
+   \   0000049C   C00080E3           ORR      R0,R0,#0xC0
+   \   000004A0   00F021E1           MSR      CPSR_c,R0
+    357                  	    at91flashSetLock(ADRESS_FLASH_SETING,0);
+   \   000004A4   0010A0E3           MOV      R1,#+0
+   \   000004A8   7F0CA0E3           MOV      R0,#+32512
+   \   000004AC   ........           BL       at91flashSetLock
+    358                          at91flashWrite(ADRESS_FLASH_SETING,setting_buf,sizeof(setting_buf));
+   \   000004B0   3520A0E3           MOV      R2,#+53
+   \   000004B4   ........           LDR      R1,??DataTable31  ;; setting_buf
+   \   000004B8   7F0CA0E3           MOV      R0,#+32512
+   \   000004BC   ........           BL       at91flashWrite
+    359                          __enable_interrupt();
+   \   000004C0   00000FE1           MRS      R0,CPSR
+   \   000004C4   C000C0E3           BIC      R0,R0,#0xC0
+   \   000004C8   00F021E1           MSR      CPSR_c,R0
+    360          				shell_output("paramet saved", "");
+   \   000004CC   14108FE2           ADR      R1,??set_parametr_7+0x8  ;; ""
+   \   000004D0   60009FE5           LDR      R0,??set_parametr_7+0x58  ;; `?<Constant "paramet saved">`
+   \   000004D4   ........           BL       shell_output
+    361                  	}
+    362          }
+   \                     ??set_parametr_29:
+   \                     ??set_parametr_3:
+   \   000004D8   F140BDE8           POP      {R0,R4-R7,LR}
+   \   000004DC   1EFF2FE1           BX       LR               ;; return
+   \                     ??set_parametr_7:
+   \   000004E0   67770000           DC8      0x67, 0x77, 0x00, 0x00
+   \   000004E4   74617200           DC8      "tar"
+   \   000004E8   00000000           DC8      "",+0,+0,+0
+   \   000004EC   ........           DC32     setting_buf + 22
+   \   000004F0   ........           DC32     `?<Constant "IP address">`
+   \   000004F4   ........           DC32     `?<Constant "wrong argument">`
+   \   000004F8   ........           DC32     `?<Constant "mask">`
+   \   000004FC   ........           DC32     setting_buf + 26
+   \   00000500   ........           DC32     `?<Constant "Mask address">`
+   \   00000504   ........           DC32     setting_buf + 30
+   \   00000508   ........           DC32     `?<Constant "Gateway address">`
+   \   0000050C   ........           DC32     setting_buf + 34
+   \   00000510   ........           DC32     `?<Constant "Target ip address">`
+   \   00000514   ........           DC32     `?<Constant "login">`
+   \   00000518   ........           DC32     `?<Constant "passwd">`
+   \   0000051C   ........           DC32     `?<Constant "size">`
+   \   00000520   ........           DC32     `?<Constant "errore:max size 1024 ...">`
+   \   00000524   ........           DC32     `?<Constant "count">`
+   \   00000528   ........           DC32     `?<Constant "period">`
+   \   0000052C   ........           DC32     `?<Constant "percent">`
+   \   00000530   ........           DC32     `?<Constant "errore:max parameter ...">`
+   \   00000534   ........           DC32     `?<Constant "time">`
+   \   00000538   ........           DC32     `?<Constant "paramet saved">`
+    363          /*---------------------------------------------------------------------------*/
+    364          //struct ptentry parsetab[] =
+    365          //  {
+    366          //   {"help",	help},
+    367          //   {"show",	show_device},
+    368          //   {"reboot",	rebbot_eqip},
+    369          //   {"reload",	reload_device},
+    370          //   {"stop",	stop_device},
+    371          //   {"start",	start_device},
+    372          //   {"set",	set_parametr},
+    373          //   {"exit",	shell_quit},
+    374          //   {'\0', unknown}
+    375          //  };
+    376          
+    377          /*---------------------------------------------------------------------------*/
+
+   \                                 In section .text, align 4, keep-with-next
+    378          void shell_init(void)
+    379          {
+    380          	//
+    381          }
+   \                     shell_init:
+   \   00000000   1EFF2FE1           BX       LR               ;; return
+    382          /*---------------------------------------------------------------------------*/
+
+   \                                 In section .text, align 4, keep-with-next
+    383          void shell_start(void)
+    384          {
+   \                     shell_start:
+   \   00000000   00502DE9           PUSH     {R12,LR}
+    385            shell_output("Welcome to LanPING Device v1.4.2 ", "http://www.esl.ho.ua");
+   \   00000004   14109FE5           LDR      R1,??shell_start_0  ;; `?<Constant "http://www.esl.ho.ua">`
+   \   00000008   14009FE5           LDR      R0,??shell_start_0+0x4  ;; `?<Constant "Welcome to LanPING De...">`
+   \   0000000C   ........           BL       shell_output
+    386          //#ifndef DBG_BORD
+    387            shell_prompt("Login:");
+   \   00000010   10009FE5           LDR      R0,??shell_start_0+0x8  ;; `?<Constant "Login:">`
+   \   00000014   ........           BL       shell_prompt
+    388          //#else
+    389          //  shell_prompt(SHELL_PROMPT);
+    390          //#endif
+    391          }
+   \   00000018   0140BDE8           POP      {R0,LR}
+   \   0000001C   1EFF2FE1           BX       LR               ;; return
+   \                     ??shell_start_0:
+   \   00000020   ........           DC32     `?<Constant "http://www.esl.ho.ua">`
+   \   00000024   ........           DC32     `?<Constant "Welcome to LanPING De...">`
+   \   00000028   ........           DC32     `?<Constant "Login:">`
+    392          /*---------------------------------------------------------------------------*/
+    393          
+
+   \                                 In section .text, align 4, keep-with-next
+    394          void parse(char *strt)
+    395          {
+   \                     parse:
+   \   00000000   10402DE9           PUSH     {R4,LR}
+   \   00000004   0040B0E1           MOVS     R4,R0
+    396          //  struct ptentry *p;
+    397          //for(p = t; p->commandstr != NULL; ++p) {
+    398          //if(strncmp(p->commandstr, str, strlen(p->commandstr)) == 0) {
+    399          //  break;
+    400          //}
+    401          //}
+    402          
+    403          //  p->pfunc(str);
+    404            if (strncmp(strt,"help"  ,4)==0){  help(strt);return;}
+   \   00000008   0420A0E3           MOV      R2,#+4
+   \   0000000C   ........           LDR      R1,??DataTable29  ;; `?<Constant "help">`
+   \   00000010   0400B0E1           MOVS     R0,R4
+   \   00000014   ........           BL       strncmp
+   \   00000018   000050E3           CMP      R0,#+0
+   \   0000001C   0200001A           BNE      ??parse_0
+   \   00000020   0400B0E1           MOVS     R0,R4
+   \   00000024   ........           BL       help
+   \   00000028   4D0000EA           B        ??parse_1
+    405            if (strncmp(strt,"set"   ,3)==0){  set_parametr(strt);return;}
+   \                     ??parse_0:
+   \   0000002C   0320A0E3           MOV      R2,#+3
+   \   00000030   4D1F8FE2           ADR      R1,??parse_2     ;; "set"
+   \   00000034   0400B0E1           MOVS     R0,R4
+   \   00000038   ........           BL       strncmp
+   \   0000003C   000050E3           CMP      R0,#+0
+   \   00000040   0200001A           BNE      ??parse_3
+   \   00000044   0400B0E1           MOVS     R0,R4
+   \   00000048   ........           BL       set_parametr
+   \   0000004C   440000EA           B        ??parse_1
+    406            if (strncmp(strt,"start" ,5)==0){  start_device(strt);return;}
+   \                     ??parse_3:
+   \   00000050   0520A0E3           MOV      R2,#+5
+   \   00000054   14119FE5           LDR      R1,??parse_2+0x4  ;; `?<Constant "start">`
+   \   00000058   0400B0E1           MOVS     R0,R4
+   \   0000005C   ........           BL       strncmp
+   \   00000060   000050E3           CMP      R0,#+0
+   \   00000064   0200001A           BNE      ??parse_4
+   \   00000068   0400B0E1           MOVS     R0,R4
+   \   0000006C   ........           BL       start_device
+   \   00000070   3B0000EA           B        ??parse_1
+    407            if (strncmp(strt,"stop"  ,4)==0){  stop_device(strt);return;}
+   \                     ??parse_4:
+   \   00000074   0420A0E3           MOV      R2,#+4
+   \   00000078   F4109FE5           LDR      R1,??parse_2+0x8  ;; `?<Constant "stop">`
+   \   0000007C   0400B0E1           MOVS     R0,R4
+   \   00000080   ........           BL       strncmp
+   \   00000084   000050E3           CMP      R0,#+0
+   \   00000088   0200001A           BNE      ??parse_5
+   \   0000008C   0400B0E1           MOVS     R0,R4
+   \   00000090   ........           BL       stop_device
+   \   00000094   320000EA           B        ??parse_1
+    408            if (strncmp(strt,"exit"  ,4)==0){  shell_quit(strt);return;}
+   \                     ??parse_5:
+   \   00000098   0420A0E3           MOV      R2,#+4
+   \   0000009C   D4109FE5           LDR      R1,??parse_2+0xC  ;; `?<Constant "exit">`
+   \   000000A0   0400B0E1           MOVS     R0,R4
+   \   000000A4   ........           BL       strncmp
+   \   000000A8   000050E3           CMP      R0,#+0
+   \   000000AC   0200001A           BNE      ??parse_6
+   \   000000B0   0400B0E1           MOVS     R0,R4
+   \   000000B4   ........           BL       shell_quit
+   \   000000B8   290000EA           B        ??parse_1
+    409            if (strncmp(strt,"show"  ,4)==0){  show_device(strt);return;}
+   \                     ??parse_6:
+   \   000000BC   0420A0E3           MOV      R2,#+4
+   \   000000C0   B4109FE5           LDR      R1,??parse_2+0x10  ;; `?<Constant "show">`
+   \   000000C4   0400B0E1           MOVS     R0,R4
+   \   000000C8   ........           BL       strncmp
+   \   000000CC   000050E3           CMP      R0,#+0
+   \   000000D0   0200001A           BNE      ??parse_7
+   \   000000D4   0400B0E1           MOVS     R0,R4
+   \   000000D8   ........           BL       show_device
+   \   000000DC   200000EA           B        ??parse_1
+    410            if (strncmp(strt,"reboot",6)==0){  rebbot_eqip(strt);return;}
+   \                     ??parse_7:
+   \   000000E0   0620A0E3           MOV      R2,#+6
+   \   000000E4   94109FE5           LDR      R1,??parse_2+0x14  ;; `?<Constant "reboot">`
+   \   000000E8   0400B0E1           MOVS     R0,R4
+   \   000000EC   ........           BL       strncmp
+   \   000000F0   000050E3           CMP      R0,#+0
+   \   000000F4   0200001A           BNE      ??parse_8
+   \   000000F8   0400B0E1           MOVS     R0,R4
+   \   000000FC   ........           BL       rebbot_eqip
+   \   00000100   170000EA           B        ??parse_1
+    411            if (strncmp(strt,"reload",6)==0){  reload_device(strt);return;}
+   \                     ??parse_8:
+   \   00000104   0620A0E3           MOV      R2,#+6
+   \   00000108   74109FE5           LDR      R1,??parse_2+0x18  ;; `?<Constant "reload">`
+   \   0000010C   0400B0E1           MOVS     R0,R4
+   \   00000110   ........           BL       strncmp
+   \   00000114   000050E3           CMP      R0,#+0
+   \   00000118   0200001A           BNE      ??parse_9
+   \   0000011C   0400B0E1           MOVS     R0,R4
+   \   00000120   ........           BL       reload_device
+   \   00000124   0E0000EA           B        ??parse_1
+    412            if (strncmp(strt,"DEBUG" ,5)==0){  DEBUG_TELNET=1;shell_output("DEBUG:","ENABLE");return;}
+   \                     ??parse_9:
+   \   00000128   0520A0E3           MOV      R2,#+5
+   \   0000012C   54109FE5           LDR      R1,??parse_2+0x1C  ;; `?<Constant "DEBUG">`
+   \   00000130   0400B0E1           MOVS     R0,R4
+   \   00000134   ........           BL       strncmp
+   \   00000138   000050E3           CMP      R0,#+0
+   \   0000013C   0600001A           BNE      ??parse_10
+   \   00000140   44009FE5           LDR      R0,??parse_2+0x20  ;; DEBUG_TELNET
+   \   00000144   0110A0E3           MOV      R1,#+1
+   \   00000148   0010C0E5           STRB     R1,[R0, #+0]
+   \   0000014C   3C109FE5           LDR      R1,??parse_2+0x24  ;; `?<Constant "ENABLE">`
+   \   00000150   3C009FE5           LDR      R0,??parse_2+0x28  ;; `?<Constant "DEBUG:">`
+   \   00000154   ........           BL       shell_output
+   \   00000158   010000EA           B        ??parse_1
+    413          
+    414            unknown(strt);
+   \                     ??parse_10:
+   \   0000015C   0400B0E1           MOVS     R0,R4
+   \   00000160   ........           BL       unknown
+    415          }
+   \                     ??parse_1:
+   \   00000164   1040BDE8           POP      {R4,LR}
+   \   00000168   1EFF2FE1           BX       LR               ;; return
+   \                     ??parse_2:
+   \   0000016C   73657400           DC8      "set"
+   \   00000170   ........           DC32     `?<Constant "start">`
+   \   00000174   ........           DC32     `?<Constant "stop">`
+   \   00000178   ........           DC32     `?<Constant "exit">`
+   \   0000017C   ........           DC32     `?<Constant "show">`
+   \   00000180   ........           DC32     `?<Constant "reboot">`
+   \   00000184   ........           DC32     `?<Constant "reload">`
+   \   00000188   ........           DC32     `?<Constant "DEBUG">`
+   \   0000018C   ........           DC32     DEBUG_TELNET
+   \   00000190   ........           DC32     `?<Constant "ENABLE">`
+   \   00000194   ........           DC32     `?<Constant "DEBUG:">`
+    416          /*----------------------------------------------------------------------------*/
+
+   \                                 In section .text, align 4, keep-with-next
+    417          void shell_input(char *cmd)
+    418          {
+   \                     shell_input:
+   \   00000000   10402DE9           PUSH     {R4,LR}
+   \   00000004   0040B0E1           MOVS     R4,R0
+    419          //#ifndef DBG_BORD
+    420            if (autorization == 0)
+   \   00000008   ........           LDR      R0,??DataTable37  ;; autorization
+   \   0000000C   0000D0E5           LDRB     R0,[R0, #+0]
+   \   00000010   000050E3           CMP      R0,#+0
+   \   00000014   1300001A           BNE      ??shell_input_0
+    421            {
+    422               if (strcmp(SET->login,cmd) == 0)
+                                 ^
+Warning[Pe167]: argument of type "unsigned char *" is incompatible with
+          parameter of type "char const *"
+   \   00000018   0410B0E1           MOVS     R1,R4
+   \   0000001C   ........           LDR      R0,??DataTable31  ;; setting_buf
+   \   00000020   ........           BL       strcmp
+   \   00000024   000050E3           CMP      R0,#+0
+   \   00000028   0600001A           BNE      ??shell_input_1
+    423          	 {
+    424                 autorization = 1;
+   \   0000002C   ........           LDR      R0,??DataTable37  ;; autorization
+   \   00000030   0110A0E3           MOV      R1,#+1
+   \   00000034   0010C0E5           STRB     R1,[R0, #+0]
+    425                 //shell_prompt("\xff\xfe\x01");
+    426                 shell_output("Password: ","");
+   \   00000038   B4108FE2           ADR      R1,??shell_input_2  ;; ""
+   \   0000003C   B8009FE5           LDR      R0,??shell_input_2+0x8  ;; `?<Constant "Password: ">`
+   \   00000040   ........           BL       shell_output
+    427                 return;
+   \   00000044   280000EA           B        ??shell_input_3
+    428               }
+    429               shell_output("Bad login, press any key.....","");
+   \                     ??shell_input_1:
+   \   00000048   A4108FE2           ADR      R1,??shell_input_2  ;; ""
+   \   0000004C   AC009FE5           LDR      R0,??shell_input_2+0xC  ;; `?<Constant "Bad login, press any ...">`
+   \   00000050   ........           BL       shell_output
+    430               shell_quit("end");
+   \   00000054   9C008FE2           ADR      R0,??shell_input_2+0x4  ;; "end"
+   \   00000058   ........           BL       shell_quit
+    431               autorization = 0;
+   \   0000005C   ........           LDR      R0,??DataTable37  ;; autorization
+   \   00000060   0010A0E3           MOV      R1,#+0
+   \   00000064   0010C0E5           STRB     R1,[R0, #+0]
+    432            }
+    433              if (autorization == 1)
+   \                     ??shell_input_0:
+   \   00000068   ........           LDR      R0,??DataTable37  ;; autorization
+   \   0000006C   0000D0E5           LDRB     R0,[R0, #+0]
+   \   00000070   010050E3           CMP      R0,#+1
+   \   00000074   1400001A           BNE      ??shell_input_4
+    434            {
+    435               if (strcmp(SET->password,cmd) == 0) 
+                                 ^
+Warning[Pe167]: argument of type "unsigned char *" is incompatible with
+          parameter of type "char const *"
+   \   00000078   0410B0E1           MOVS     R1,R4
+   \   0000007C   80009FE5           LDR      R0,??shell_input_2+0x10  ;; setting_buf + 10
+   \   00000080   ........           BL       strcmp
+   \   00000084   000050E3           CMP      R0,#+0
+   \   00000088   0800001A           BNE      ??shell_input_5
+    436               {
+    437                 autorization = 2;
+   \   0000008C   ........           LDR      R0,??DataTable37  ;; autorization
+   \   00000090   0210A0E3           MOV      R1,#+2
+   \   00000094   0010C0E5           STRB     R1,[R0, #+0]
+    438                 //shell_prompt("\xff\xfb\x01");
+    439                 shell_output("Welcome","");
+   \   00000098   54108FE2           ADR      R1,??shell_input_2  ;; ""
+   \   0000009C   64009FE5           LDR      R0,??shell_input_2+0x14  ;; `?<Constant "Welcome">`
+   \   000000A0   ........           BL       shell_output
+    440                 shell_prompt(SHELL_PROMPT);
+   \   000000A4   60009FE5           LDR      R0,??shell_input_2+0x18  ;; `?<Constant "cmd#">`
+   \   000000A8   ........           BL       shell_prompt
+    441                 return;
+   \   000000AC   0E0000EA           B        ??shell_input_3
+    442               }
+    443                shell_prompt("Bad login, press any key.....");
+   \                     ??shell_input_5:
+   \   000000B0   48009FE5           LDR      R0,??shell_input_2+0xC  ;; `?<Constant "Bad login, press any ...">`
+   \   000000B4   ........           BL       shell_prompt
+    444                shell_quit("end");
+   \   000000B8   38008FE2           ADR      R0,??shell_input_2+0x4  ;; "end"
+   \   000000BC   ........           BL       shell_quit
+    445                autorization = 0;
+   \   000000C0   ........           LDR      R0,??DataTable37  ;; autorization
+   \   000000C4   0010A0E3           MOV      R1,#+0
+   \   000000C8   0010C0E5           STRB     R1,[R0, #+0]
+    446              
+    447            }
+    448              if (autorization == 2)
+   \                     ??shell_input_4:
+   \   000000CC   ........           LDR      R0,??DataTable37  ;; autorization
+   \   000000D0   0000D0E5           LDRB     R0,[R0, #+0]
+   \   000000D4   020050E3           CMP      R0,#+2
+   \   000000D8   0300001A           BNE      ??shell_input_6
+    449            {
+    450              //parse(cmd, parsetab);
+    451              parse(cmd);
+   \   000000DC   0400B0E1           MOVS     R0,R4
+   \   000000E0   ........           BL       parse
+    452              shell_prompt(SHELL_PROMPT);
+   \   000000E4   20009FE5           LDR      R0,??shell_input_2+0x18  ;; `?<Constant "cmd#">`
+   \   000000E8   ........           BL       shell_prompt
+    453            }
+    454          //#else
+    455          //    parse(cmd, parsetab);
+    456          //    shell_prompt(SHELL_PROMPT);
+    457          //#endif
+    458          
+    459          }
+   \                     ??shell_input_6:
+   \                     ??shell_input_3:
+   \   000000EC   1040BDE8           POP      {R4,LR}
+   \   000000F0   1EFF2FE1           BX       LR               ;; return
+   \                     ??shell_input_2:
+   \   000000F4   00000000           DC8      "",+0,+0,+0
+   \   000000F8   656E6400           DC8      "end"
+   \   000000FC   ........           DC32     `?<Constant "Password: ">`
+   \   00000100   ........           DC32     `?<Constant "Bad login, press any ...">`
+   \   00000104   ........           DC32     setting_buf + 10
+   \   00000108   ........           DC32     `?<Constant "Welcome">`
+   \   0000010C   ........           DC32     `?<Constant "cmd#">`
+
+   \                                 In section .text, align 4, keep-with-next
+   \                     ??DataTable13:
+   \   00000000   ........           DC32     DEVICE_STATE
+
+   \                                 In section .text, align 4, keep-with-next
+   \                     ??DataTable15:
+   \   00000000   ........           DC32     setting_buf + 20
+
+   \                                 In section .text, align 4, keep-with-next
+   \                     ??DataTable16:
+   \   00000000   ........           DC32     setting_buf + 24
+
+   \                                 In section .text, align 4, keep-with-next
+   \                     ??DataTable17:
+   \   00000000   ........           DC32     setting_buf + 28
+
+   \                                 In section .text, align 4, keep-with-next
+   \                     ??DataTable18:
+   \   00000000   ........           DC32     setting_buf + 32
+
+   \                                 In section .text, align 4, keep-with-next
+   \                     ??DataTable23:
+   \   00000000   ........           DC32     setting_buf + 44
+
+   \                                 In section .text, align 4, keep-with-next
+   \                     ??DataTable24:
+   \   00000000   ........           DC32     setting_buf + 38
+
+   \                                 In section .text, align 4, keep-with-next
+   \                     ??DataTable25:
+   \   00000000   ........           DC32     setting_buf + 36
+
+   \                                 In section .text, align 4, keep-with-next
+   \                     ??DataTable26:
+   \   00000000   ........           DC32     setting_buf + 40
+
+   \                                 In section .text, align 4, keep-with-next
+   \                     ??DataTable27:
+   \   00000000   ........           DC32     setting_buf + 42
+
+   \                                 In section .text, align 4, keep-with-next
+   \                     ??DataTable29:
+   \   00000000   ........           DC32     `?<Constant "help">`
+
+   \                                 In section .text, align 4, keep-with-next
+   \                     ??DataTable31:
+   \   00000000   ........           DC32     setting_buf
+
+   \                                 In section .text, align 4, keep-with-next
+   \                     ??DataTable37:
+   \   00000000   ........           DC32     autorization
+
+   \                                 In section .rodata, align 4
+   \                     `?<Constant "show   - show settings">`:
+   \   00000000   73686F772020       DC8 "show   - show settings"
+   \              202D2073686F
+   \              772073657474
+   \              696E677300  
+   \   00000017   00                 DC8 0
+
+   \                                 In section .rodata, align 1
+   \   00000000   00                 DC8 ""
+
+   \                                 In section .rodata, align 4
+   \                     `?<Constant "reboot - reboot equip...">`:
+   \   00000000   7265626F6F74       DC8 "reboot - reboot equipment"
+   \              202D20726562
+   \              6F6F74206571
+   \              7569706D656E
+   \              7400        
+   \   0000001A   0000               DC8 0, 0
+
+   \                                 In section .rodata, align 4
+   \                     `?<Constant "reload - reboot watch...">`:
+   \   00000000   72656C6F6164       DC8 "reload - reboot watch dog device"
+   \              202D20726562
+   \              6F6F74207761
+   \              74636820646F
+   \              672064657669
+   \              636500      
+   \   00000021   000000             DC8 0, 0, 0
+
+   \                                 In section .rodata, align 4
+   \                     `?<Constant "stop   - stop monitor...">`:
+   \   00000000   73746F702020       DC8 "stop   - stop monitoring network"
+   \              202D2073746F
+   \              70206D6F6E69
+   \              746F72696E67
+   \              206E6574776F
+   \              726B00      
+   \   00000021   000000             DC8 0, 0, 0
+
+   \                                 In section .rodata, align 4
+   \                     `?<Constant "start  - start monito...">`:
+   \   00000000   737461727420       DC8 "start  - start monitoring network"
+   \              202D20737461
+   \              7274206D6F6E
+   \              69746F72696E
+   \              67206E657477
+   \              6F726B00    
+   \   00000022   0000               DC8 0, 0
+
+   \                                 In section .rodata, align 4
+   \                     `?<Constant "set    - set device p...">`:
+   \   00000000   736574202020       DC8 "set    - set device paramiter "
+   \              202D20736574
+   \              206465766963
+   \              652070617261
+   \              6D6974657220
+   \              00          
+   \   0000001F   00                 DC8 0
+
+   \                                 In section .rodata, align 4
+   \                     `?<Constant "exit   - exit from te...">`:
+   \   00000000   657869742020       DC8 "exit   - exit from telnet"
+   \              202D20657869
+   \              742066726F6D
+   \              2074656C6E65
+   \              7400        
+   \   0000001A   0000               DC8 0, 0
+
+   \                                 In section .rodata, align 4
+   \                     `?<Constant "ip xxx.xxx.xxx.xxx ">`:
+   \   00000000   697020787878       DC8 "ip xxx.xxx.xxx.xxx "
+   \              2E7878782E78
+   \              78782E787878
+   \              2000        
+
+   \                                 In section .rodata, align 4
+   \                     `?<Constant "- device ip address ">`:
+   \   00000000   2D2064657669       DC8 "- device ip address "
+   \              636520697020
+   \              616464726573
+   \              732000      
+   \   00000015   000000             DC8 0, 0, 0
+
+   \                                 In section .rodata, align 4
+   \                     `?<Constant "mask xxx.xxx.xxx.xxx ">`:
+   \   00000000   6D61736B2078       DC8 "mask xxx.xxx.xxx.xxx "
+   \              78782E787878
+   \              2E7878782E78
+   \              78782000    
+   \   00000016   0000               DC8 0, 0
+
+   \                                 In section .rodata, align 4
+   \                     `?<Constant "- device mask ">`:
+   \   00000000   2D2064657669       DC8 "- device mask "
+   \              6365206D6173
+   \              6B2000      
+   \   0000000F   00                 DC8 0
+
+   \                                 In section .rodata, align 4
+   \                     `?<Constant "gw xxx.xxx.xxx.xxx ">`:
+   \   00000000   677720787878       DC8 "gw xxx.xxx.xxx.xxx "
+   \              2E7878782E78
+   \              78782E787878
+   \              2000        
+
+   \                                 In section .rodata, align 4
+   \                     `?<Constant "- gateway ">`:
+   \   00000000   2D2067617465       DC8 "- gateway "
+   \              7761792000  
+   \   0000000B   00                 DC8 0
+
+   \                                 In section .rodata, align 4
+   \                     `?<Constant "tar xxx.xxx.xxx.xxx ">`:
+   \   00000000   746172207878       DC8 "tar xxx.xxx.xxx.xxx "
+   \              782E7878782E
+   \              7878782E7878
+   \              782000      
+   \   00000015   000000             DC8 0, 0, 0
+
+   \                                 In section .rodata, align 4
+   \                     `?<Constant "- target device ">`:
+   \   00000000   2D2074617267       DC8 "- target device "
+   \              657420646576
+   \              6963652000  
+   \   00000011   000000             DC8 0, 0, 0
+
+   \                                 In section .rodata, align 4
+   \                     `?<Constant "period xx - send ">`:
+   \   00000000   706572696F64       DC8 "period xx - send "
+   \              207878202D20
+   \              73656E642000
+   \   00000012   0000               DC8 0, 0
+
+   \                                 In section .rodata, align 4
+   \                     `?<Constant "test packet period sec">`:
+   \   00000000   746573742070       DC8 "test packet period sec"
+   \              61636B657420
+   \              706572696F64
+   \              2073656300  
+   \   00000017   00                 DC8 0
+
+   \                                 In section .rodata, align 4
+   \                     `?<Constant "count xxx - send ">`:
+   \   00000000   636F756E7420       DC8 "count xxx - send "
+   \              787878202D20
+   \              73656E642000
+   \   00000012   0000               DC8 0, 0
+
+   \                                 In section .rodata, align 4
+   \                     `?<Constant "test packet ICMP request">`:
+   \   00000000   746573742070       DC8 "test packet ICMP request"
+   \              61636B657420
+   \              49434D502072
+   \              657175657374
+   \              00          
+   \   00000019   000000             DC8 0, 0, 0
+
+   \                                 In section .rodata, align 4
+   \                     `?<Constant "size xxxx - ICMP ">`:
+   \   00000000   73697A652078       DC8 "size xxxx - ICMP "
+   \              787878202D20
+   \              49434D502000
+   \   00000012   0000               DC8 0, 0
+
+   \                                 In section .rodata, align 4
+   \                     `?<Constant "data bytes">`:
+   \   00000000   646174612062       DC8 "data bytes"
+   \              7974657300  
+   \   0000000B   00                 DC8 0
+
+   \                                 In section .rodata, align 4
+   \                     `?<Constant "percent xxx - % ">`:
+   \   00000000   70657263656E       DC8 "percent xxx - % "
+   \              742078787820
+   \              2D20252000  
+   \   00000011   000000             DC8 0, 0, 0
+
+   \                                 In section .rodata, align 4
+   \                     `?<Constant "bad ICMP packet">`:
+   \   00000000   626164204943       DC8 "bad ICMP packet"
+   \              4D5020706163
+   \              6B657400    
+
+   \                                 In section .rodata, align 4
+   \                     `?<Constant "time xxx - time ">`:
+   \   00000000   74696D652078       DC8 "time xxx - time "
+   \              7878202D2074
+   \              696D652000  
+   \   00000011   000000             DC8 0, 0, 0
+
+   \                                 In section .rodata, align 4
+   \                     `?<Constant "reboot equipment">`:
+   \   00000000   7265626F6F74       DC8 "reboot equipment"
+   \              206571756970
+   \              6D656E7400  
+   \   00000011   000000             DC8 0, 0, 0
+
+   \                                 In section .rodata, align 4
+   \                     `?<Constant "Unknown command: ">`:
+   \   00000000   556E6B6E6F77       DC8 "Unknown command: "
+   \              6E20636F6D6D
+   \              616E643A2000
+   \   00000012   0000               DC8 0, 0
+
+   \                                 In section .rodata, align 4
+   \                     `?<Constant "resetting equipment...">`:
+   \   00000000   726573657474       DC8 "resetting equipment..."
+   \              696E67206571
+   \              7569706D656E
+   \              742E2E2E00  
+   \   00000017   00                 DC8 0
+
+   \                                 In section .rodata, align 4
+   \                     `?<Constant "resetting equipment.....">`:
+   \   00000000   726573657474       DC8 "resetting equipment...OK!!"
+   \              696E67206571
+   \              7569706D656E
+   \              742E2E2E4F4B
+   \              212100      
+   \   0000001B   00                 DC8 0
+
+   \                                 In section .rodata, align 4
+   \                     `?<Constant "reboot....system">`:
+   \   00000000   7265626F6F74       DC8 "reboot....system"
+   \              2E2E2E2E7379
+   \              7374656D00  
+   \   00000011   000000             DC8 0, 0, 0
+
+   \                                 In section .rodata, align 4
+   \                     `?<Constant "pinger stopped">`:
+   \   00000000   70696E676572       DC8 "pinger stopped"
+   \              2073746F7070
+   \              656400      
+   \   0000000F   00                 DC8 0
+
+   \                                 In section .rodata, align 4
+   \                     `?<Constant "pinger started">`:
+   \   00000000   70696E676572       DC8 "pinger started"
+   \              207374617274
+   \              656400      
+   \   0000000F   00                 DC8 0
+
+   \                                 In section .rodata, align 4
+   \                     `?<Constant "%i.%i.%i.%i">`:
+   \   00000000   25692E25692E       DC8 "%i.%i.%i.%i"
+   \              25692E256900
+
+   \                                 In section .rodata, align 4
+   \                     `?<Constant "---------------------...">`:
+   \   00000000   2D2D2D2D2D2D       DC8 2DH, 2DH, 2DH, 2DH, 2DH, 2DH, 2DH, 2DH
+   \              2D2D        
+   \   00000008   2D2D2D2D2D2D       DC8 2DH, 2DH, 2DH, 2DH, 2DH, 2DH, 2DH, 2DH
+   \              2D2D        
+   \   00000010   2D2D2D2D2D2D       DC8 2DH, 2DH, 2DH, 2DH, 2DH, 2DH, 2DH, 2DH
+   \              2D2D        
+   \   00000018   2D2D2D2D2D2D       DC8 2DH, 2DH, 2DH, 2DH, 2DH, 2DH, 2DH, 2DH
+   \              2D2D        
+   \   00000020   2D2D2D2D2D2D       DC8 2DH, 2DH, 2DH, 2DH, 2DH, 2DH, 2DH, 2DH
+   \              2D2D        
+   \   00000028   2D2D2D2D2D2D       DC8 2DH, 2DH, 2DH, 2DH, 2DH, 2DH, 2DH, 2DH
+   \              2D2D        
+   \   00000030   2D2D2D2D2D00       DC8 2DH, 2DH, 2DH, 2DH, 2DH, 0
+   \   00000036   0000               DC8 0, 0
+
+   \                                 In section .rodata, align 4
+   \                     `?<Constant "Ip: ">`:
+   \   00000000   49703A2000         DC8 "Ip: "
+   \   00000005   000000             DC8 0, 0, 0
+
+   \                                 In section .rodata, align 4
+   \                     `?<Constant "Mask: ">`:
+   \   00000000   4D61736B3A20       DC8 "Mask: "
+   \              00          
+   \   00000007   00                 DC8 0
+
+   \                                 In section .rodata, align 4
+   \                     `?<Constant "GateWay: ">`:
+   \   00000000   476174655761       DC8 "GateWay: "
+   \              793A2000    
+   \   0000000A   0000               DC8 0, 0
+
+   \                                 In section .rodata, align 4
+   \                     `?<Constant "Target: ">`:
+   \   00000000   546172676574       DC8 "Target: "
+   \              3A2000      
+   \   00000009   000000             DC8 0, 0, 0
+
+   \                                 In section .rodata, align 4
+   \                     `?<Constant "%d sec">`:
+   \   00000000   256420736563       DC8 "%d sec"
+   \              00          
+   \   00000007   00                 DC8 0
+
+   \                                 In section .rodata, align 4
+   \                     `?<Constant "Reboot equipment time: ">`:
+   \   00000000   5265626F6F74       DC8 "Reboot equipment time: "
+   \              206571756970
+   \              6D656E742074
+   \              696D653A2000
+
+   \                                 In section .rodata, align 4
+   \                     `?<Constant "Ping interval: ">`:
+   \   00000000   50696E672069       DC8 "Ping interval: "
+   \              6E7465727661
+   \              6C3A2000    
+
+   \                                 In section .rodata, align 4
+   \                     `?<Constant "ICMP send packet: ">`:
+   \   00000000   49434D502073       DC8 "ICMP send packet: "
+   \              656E64207061
+   \              636B65743A20
+   \              00          
+   \   00000013   00                 DC8 0
+
+   \                                 In section .rodata, align 4
+   \   00000000   256400             DC8 "%d"
+   \   00000003   00                 DC8 0
+
+   \                                 In section .rodata, align 4
+   \                     `?<Constant "ICMP data: ">`:
+   \   00000000   49434D502064       DC8 "ICMP data: "
+   \              6174613A2000
+
+   \                                 In section .rodata, align 4
+   \                     `?<Constant "%d %%">`:
+   \   00000000   256420252500       DC8 "%d %%"
+   \   00000006   0000               DC8 0, 0
+
+   \                                 In section .rodata, align 4
+   \                     `?<Constant "Percent bad packet: ">`:
+   \   00000000   50657263656E       DC8 "Percent bad packet: "
+   \              742062616420
+   \              7061636B6574
+   \              3A2000      
+   \   00000015   000000             DC8 0, 0, 0
+
+   \                                 In section .rodata, align 4
+   \   00000000   25642000           DC8 "%d "
+
+   \                                 In section .rodata, align 4
+   \                     `?<Constant "Reboot counter: ">`:
+   \   00000000   5265626F6F74       DC8 "Reboot counter: "
+   \              20636F756E74
+   \              65723A2000  
+   \   00000011   000000             DC8 0, 0, 0
+
+   \                                 In section .rodata, align 4
+   \                     `?<Constant "Observed server visib...">`:
+   \   00000000   4F6273657276       DC8 "Observed server visible: yes"
+   \              656420736572
+   \              766572207669
+   \              7369626C653A
+   \              2079657300  
+   \   0000001D   000000             DC8 0, 0, 0
+
+   \                                 In section .rodata, align 4
+   \                     `?<Constant "Observed server visib...">_1`:
+   \   00000000   4F6273657276       DC8 "Observed server visible: no"
+   \              656420736572
+   \              766572207669
+   \              7369626C653A
+   \              206E6F00    
+
+   \                                 In section .rodata, align 4
+   \                     `?<Constant "Time after inclusion: ">`:
+   \   00000000   54696D652061       DC8 "Time after inclusion: "
+   \              667465722069
+   \              6E636C757369
+   \              6F6E3A2000  
+   \   00000017   00                 DC8 0
+
+   \                                 In section .rodata, align 4
+   \                     `?<Constant "Device state: stop">`:
+   \   00000000   446576696365       DC8 "Device state: stop"
+   \              207374617465
+   \              3A2073746F70
+   \              00          
+   \   00000013   00                 DC8 0
+
+   \                                 In section .rodata, align 4
+   \                     `?<Constant "Device state: start/work">`:
+   \   00000000   446576696365       DC8 "Device state: start/work"
+   \              207374617465
+   \              3A2073746172
+   \              742F776F726B
+   \              00          
+   \   00000019   000000             DC8 0, 0, 0
+
+   \                                 In section .rodata, align 4
+   \                     `?<Constant "help">`:
+   \   00000000   68656C7000         DC8 "help"
+   \   00000005   000000             DC8 0, 0, 0
+
+   \                                 In section .rodata, align 4
+   \                     `?<Constant "wrong argument">`:
+   \   00000000   77726F6E6720       DC8 "wrong argument"
+   \              617267756D65
+   \              6E7400      
+   \   0000000F   00                 DC8 0
+
+   \                                 In section .rodata, align 4
+   \                     `?<Constant "IP address">`:
+   \   00000000   495020616464       DC8 "IP address"
+   \              7265737300  
+   \   0000000B   00                 DC8 0
+
+   \                                 In section .rodata, align 4
+   \   00000000   697000             DC8 "ip"
+   \   00000003   00                 DC8 0
+
+   \                                 In section .rodata, align 4
+   \                     `?<Constant "Mask address">`:
+   \   00000000   4D61736B2061       DC8 "Mask address"
+   \              646472657373
+   \              00          
+   \   0000000D   000000             DC8 0, 0, 0
+
+   \                                 In section .rodata, align 4
+   \                     `?<Constant "mask">`:
+   \   00000000   6D61736B00         DC8 "mask"
+   \   00000005   000000             DC8 0, 0, 0
+
+   \                                 In section .rodata, align 4
+   \                     `?<Constant "Gateway address">`:
+   \   00000000   476174657761       DC8 "Gateway address"
+   \              792061646472
+   \              65737300    
+
+   \                                 In section .rodata, align 4
+   \   00000000   677700             DC8 "gw"
+   \   00000003   00                 DC8 0
+
+   \                                 In section .rodata, align 4
+   \                     `?<Constant "Target ip address">`:
+   \   00000000   546172676574       DC8 "Target ip address"
+   \              206970206164
+   \              647265737300
+   \   00000012   0000               DC8 0, 0
+
+   \                                 In section .rodata, align 4
+   \   00000000   74617200           DC8 "tar"
+
+   \                                 In section .rodata, align 4
+   \                     `?<Constant "login">`:
+   \   00000000   6C6F67696E00       DC8 "login"
+   \   00000006   0000               DC8 0, 0
+
+   \                                 In section .rodata, align 4
+   \                     `?<Constant "passwd">`:
+   \   00000000   706173737764       DC8 "passwd"
+   \              00          
+   \   00000007   00                 DC8 0
+
+   \                                 In section .rodata, align 4
+   \                     `?<Constant "errore:max size 1024 ...">`:
+   \   00000000   6572726F7265       DC8 "errore:max size 1024 byte"
+   \              3A6D61782073
+   \              697A65203130
+   \              323420627974
+   \              6500        
+   \   0000001A   0000               DC8 0, 0
+
+   \                                 In section .rodata, align 4
+   \                     `?<Constant "size">`:
+   \   00000000   73697A6500         DC8 "size"
+   \   00000005   000000             DC8 0, 0, 0
+
+   \                                 In section .rodata, align 4
+   \                     `?<Constant "count">`:
+   \   00000000   636F756E7400       DC8 "count"
+   \   00000006   0000               DC8 0, 0
+
+   \                                 In section .rodata, align 4
+   \                     `?<Constant "period">`:
+   \   00000000   706572696F64       DC8 "period"
+   \              00          
+   \   00000007   00                 DC8 0
+
+   \                                 In section .rodata, align 4
+   \                     `?<Constant "errore:max parameter ...">`:
+   \   00000000   6572726F7265       DC8 "errore:max parameter 100%"
+   \              3A6D61782070
+   \              6172616D6574
+   \              657220313030
+   \              2500        
+   \   0000001A   0000               DC8 0, 0
+
+   \                                 In section .rodata, align 4
+   \                     `?<Constant "percent">`:
+   \   00000000   70657263656E       DC8 "percent"
+   \              7400        
+
+   \                                 In section .rodata, align 4
+   \                     `?<Constant "time">`:
+   \   00000000   74696D6500         DC8 "time"
+   \   00000005   000000             DC8 0, 0, 0
+
+   \                                 In section .rodata, align 4
+   \                     `?<Constant "paramet saved">`:
+   \   00000000   706172616D65       DC8 "paramet saved"
+   \              742073617665
+   \              6400        
+   \   0000000E   0000               DC8 0, 0
+
+   \                                 In section .rodata, align 4
+   \                     `?<Constant "Welcome to LanPING De...">`:
+   \   00000000   57656C636F6D       DC8 "Welcome to LanPING Device v1.4.2 "
+   \              6520746F204C
+   \              616E50494E47
+   \              204465766963
+   \              652076312E34
+   \              2E322000    
+   \   00000022   0000               DC8 0, 0
+
+   \                                 In section .rodata, align 4
+   \                     `?<Constant "http://www.esl.ho.ua">`:
+   \   00000000   687474703A2F       DC8 "http://www.esl.ho.ua"
+   \              2F7777772E65
+   \              736C2E686F2E
+   \              756100      
+   \   00000015   000000             DC8 0, 0, 0
+
+   \                                 In section .rodata, align 4
+   \                     `?<Constant "Login:">`:
+   \   00000000   4C6F67696E3A       DC8 "Login:"
+   \              00          
+   \   00000007   00                 DC8 0
+
+   \                                 In section .rodata, align 4
+   \   00000000   73657400           DC8 "set"
+
+   \                                 In section .rodata, align 4
+   \                     `?<Constant "start">`:
+   \   00000000   737461727400       DC8 "start"
+   \   00000006   0000               DC8 0, 0
+
+   \                                 In section .rodata, align 4
+   \                     `?<Constant "stop">`:
+   \   00000000   73746F7000         DC8 "stop"
+   \   00000005   000000             DC8 0, 0, 0
+
+   \                                 In section .rodata, align 4
+   \                     `?<Constant "exit">`:
+   \   00000000   6578697400         DC8 "exit"
+   \   00000005   000000             DC8 0, 0, 0
+
+   \                                 In section .rodata, align 4
+   \                     `?<Constant "show">`:
+   \   00000000   73686F7700         DC8 "show"
+   \   00000005   000000             DC8 0, 0, 0
+
+   \                                 In section .rodata, align 4
+   \                     `?<Constant "reboot">`:
+   \   00000000   7265626F6F74       DC8 "reboot"
+   \              00          
+   \   00000007   00                 DC8 0
+
+   \                                 In section .rodata, align 4
+   \                     `?<Constant "reload">`:
+   \   00000000   72656C6F6164       DC8 "reload"
+   \              00          
+   \   00000007   00                 DC8 0
+
+   \                                 In section .rodata, align 4
+   \                     `?<Constant "DEBUG:">`:
+   \   00000000   44454255473A       DC8 "DEBUG:"
+   \              00          
+   \   00000007   00                 DC8 0
+
+   \                                 In section .rodata, align 4
+   \                     `?<Constant "ENABLE">`:
+   \   00000000   454E41424C45       DC8 "ENABLE"
+   \              00          
+   \   00000007   00                 DC8 0
+
+   \                                 In section .rodata, align 4
+   \                     `?<Constant "DEBUG">`:
+   \   00000000   444542554700       DC8 "DEBUG"
+   \   00000006   0000               DC8 0, 0
+
+   \                                 In section .rodata, align 4
+   \                     `?<Constant "Password: ">`:
+   \   00000000   50617373776F       DC8 "Password: "
+   \              72643A2000  
+   \   0000000B   00                 DC8 0
+
+   \                                 In section .rodata, align 4
+   \                     `?<Constant "Bad login, press any ...">`:
+   \   00000000   426164206C6F       DC8 "Bad login, press any key....."
+   \              67696E2C2070
+   \              726573732061
+   \              6E79206B6579
+   \              2E2E2E2E2E00
+   \   0000001E   0000               DC8 0, 0
+
+   \                                 In section .rodata, align 4
+   \   00000000   656E6400           DC8 "end"
+
+   \                                 In section .rodata, align 4
+   \                     `?<Constant "Welcome">`:
+   \   00000000   57656C636F6D       DC8 "Welcome"
+   \              6500        
+
+   \                                 In section .rodata, align 4
+   \                     `?<Constant "cmd#">`:
+   \   00000000   636D642300         DC8 "cmd#"
+   \   00000005   000000             DC8 0, 0, 0
+    460          /*---------------------------------------------------------------------------*/
+
+   Maximum stack usage in bytes:
+
+     Function      .cstack
+     --------      -------
+     atoi               8
+     help               8
+     ip_tostring       16
+     parse              8
+     rebbot_eqip        8
+     reload_device      8
+     set_help           8
+     set_parametr      24
+     shell_init         0
+     shell_input        8
+     shell_start        8
+     show_device       24
+     start_device       8
+     stop_device        8
+     stringtoint       16
+     stringtoip         8
+     unknown            8
+
+
+   Section sizes:
+
+     Function/Label                           Bytes
+     --------------                           -----
+     atoi                                       32
+     autorization                                1
+     DEBUG_TELNET                                1
+     help                                      132
+     set_help                                  192
+     unknown                                    48
+     rebbot_eqip                                68
+     reload_device                              44
+     stop_device                                48
+     start_device                               48
+     ip_tostring                                88
+     asciiIP                                    16
+     stringtoip                                176
+     show_device                               544
+     stringtoint                                56
+     set_parametr                             1340
+     shell_init                                  4
+     shell_start                                44
+     parse                                     408
+     shell_input                               272
+     ??DataTable13                               4
+     ??DataTable15                               4
+     ??DataTable16                               4
+     ??DataTable17                               4
+     ??DataTable18                               4
+     ??DataTable23                               4
+     ??DataTable24                               4
+     ??DataTable25                               4
+     ??DataTable26                               4
+     ??DataTable27                               4
+     ??DataTable29                               4
+     ??DataTable31                               4
+     ??DataTable37                               4
+     ?<Constant "show   - show settings">       24
+     ?<Constant "">                              1
+     ?<Constant "reboot - reboot equip...">     28
+     ?<Constant "reload - reboot watch...">     36
+     ?<Constant "stop   - stop monitor...">     36
+     ?<Constant "start  - start monito...">     36
+     ?<Constant "set    - set device p...">     32
+     ?<Constant "exit   - exit from te...">     28
+     ?<Constant "ip xxx.xxx.xxx.xxx ">          20
+     ?<Constant "- device ip address ">         24
+     ?<Constant "mask xxx.xxx.xxx.xxx ">        24
+     ?<Constant "- device mask ">               16
+     ?<Constant "gw xxx.xxx.xxx.xxx ">          20
+     ?<Constant "- gateway ">                   12
+     ?<Constant "tar xxx.xxx.xxx.xxx ">         24
+     ?<Constant "- target device ">             20
+     ?<Constant "period xx - send ">            20
+     ?<Constant "test packet period sec">       24
+     ?<Constant "count xxx - send ">            20
+     ?<Constant "test packet ICMP request">     28
+     ?<Constant "size xxxx - ICMP ">            20
+     ?<Constant "data bytes">                   12
+     ?<Constant "percent xxx - % ">             20
+     ?<Constant "bad ICMP packet">              16
+     ?<Constant "time xxx - time ">             20
+     ?<Constant "reboot equipment">             20
+     ?<Constant "Unknown command: ">            20
+     ?<Constant "resetting equipment...">       24
+     ?<Constant "resetting equipment.....">     28
+     ?<Constant "reboot....system">             20
+     ?<Constant "pinger stopped">               16
+     ?<Constant "pinger started">               16
+     ?<Constant "%i.%i.%i.%i">                  12
+     ?<Constant "---------------------...">     56
+     ?<Constant "Ip: ">                          8
+     ?<Constant "Mask: ">                        8
+     ?<Constant "GateWay: ">                    12
+     ?<Constant "Target: ">                     12
+     ?<Constant "%d sec">                        8
+     ?<Constant "Reboot equipment time: ">      24
+     ?<Constant "Ping interval: ">              16
+     ?<Constant "ICMP send packet: ">           20
+     ?<Constant "%d">                            4
+     ?<Constant "ICMP data: ">                  12
+     ?<Constant "%d %%">                         8
+     ?<Constant "Percent bad packet: ">         24
+     ?<Constant "%d ">                           4
+     ?<Constant "Reboot counter: ">             20
+     ?<Constant "Observed server visib...">     32
+     ?<Constant "Observed server visib...">_1   28
+     ?<Constant "Time after inclusion: ">       24
+     ?<Constant "Device state: stop">           20
+     ?<Constant "Device state: start/work">     28
+     ?<Constant "help">                          8
+     ?<Constant "wrong argument">               16
+     ?<Constant "IP address">                   12
+     ?<Constant "ip">                            4
+     ?<Constant "Mask address">                 16
+     ?<Constant "mask">                          8
+     ?<Constant "Gateway address">              16
+     ?<Constant "gw">                            4
+     ?<Constant "Target ip address">            20
+     ?<Constant "tar">                           4
+     ?<Constant "login">                         8
+     ?<Constant "passwd">                        8
+     ?<Constant "errore:max size 1024 ...">     28
+     ?<Constant "size">                          8
+     ?<Constant "count">                         8
+     ?<Constant "period">                        8
+     ?<Constant "errore:max parameter ...">     28
+     ?<Constant "percent">                       8
+     ?<Constant "time">                          8
+     ?<Constant "paramet saved">                16
+     ?<Constant "Welcome to LanPING De...">     36
+     ?<Constant "http://www.esl.ho.ua">         24
+     ?<Constant "Login:">                        8
+     ?<Constant "set">                           4
+     ?<Constant "start">                         8
+     ?<Constant "stop">                          8
+     ?<Constant "exit">                          8
+     ?<Constant "show">                          8
+     ?<Constant "reboot">                        8
+     ?<Constant "reload">                        8
+     ?<Constant "DEBUG:">                        8
+     ?<Constant "ENABLE">                        8
+     ?<Constant "DEBUG">                         8
+     ?<Constant "Password: ">                   12
+     ?<Constant "Bad login, press any ...">     32
+     ?<Constant "end">                           4
+     ?<Constant "Welcome">                       8
+     ?<Constant "cmd#">                          8
+
+ 
+    18 bytes in section .bss
+ 1 529 bytes in section .rodata
+ 3 596 bytes in section .text
+ 
+ 3 564 bytes of CODE  memory (+ 32 bytes shared)
+ 1 529 bytes of CONST memory
+    18 bytes of DATA  memory
+
+Errors: none
+Warnings: 2

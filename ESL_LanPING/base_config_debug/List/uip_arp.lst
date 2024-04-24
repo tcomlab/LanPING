@@ -1,0 +1,1241 @@
+###############################################################################
+#                                                                             #
+# IAR ANSI C/C++ Compiler V5.30.0.51174/W32 for ARM     11/Nov/2009  14:17:09 #
+# Copyright 1999-2009 IAR Systems AB.                                         #
+#                                                                             #
+#    Cpu mode     =  arm                                                      #
+#    Endian       =  little                                                   #
+#    Source file  =  E:\PROJECTs\ARM\ESL_LanPING\Sources\uip\uip_arp.c        #
+#    Command line =  E:\PROJECTs\ARM\ESL_LanPING\Sources\uip\uip_arp.c -D     #
+#                    PROTO_BORD -lC E:\PROJECTs\ARM\ESL_LanPING\base_config_d #
+#                    ebug\List\ -o E:\PROJECTs\ARM\ESL_LanPING\base_config_de #
+#                    bug\Obj\ --no_cse --no_unroll --no_inline                #
+#                    --no_code_motion --no_tbaa --no_clustering               #
+#                    --no_scheduling --debug --endian=little --cpu=ARM7TDMI   #
+#                    -e --fpu=None --dlib_config "C:\Program Files\IAR        #
+#                    Systems\Embedded Workbench 5.4\arm\INC\DLib_Config_Norma #
+#                    l.h" -I E:\PROJECTs\ARM\ESL_LanPING\startups\ -I         #
+#                    E:\PROJECTs\ARM\ESL_LanPING\startups\at91sam7s32\ -I     #
+#                    E:\PROJECTs\ARM\ESL_LanPING\Sources\ -I                  #
+#                    E:\PROJECTs\ARM\ESL_LanPING\Sources\uip\ -I "C:\Program  #
+#                    Files\IAR Systems\Embedded Workbench 5.4\arm\INC\"       #
+#                    --interwork --cpu_mode arm -On                           #
+#    List file    =  E:\PROJECTs\ARM\ESL_LanPING\base_config_debug\List\uip_a #
+#                    rp.lst                                                   #
+#    Object file  =  E:\PROJECTs\ARM\ESL_LanPING\base_config_debug\Obj\uip_ar #
+#                    p.o                                                      #
+#                                                                             #
+#                                                                             #
+###############################################################################
+
+E:\PROJECTs\ARM\ESL_LanPING\Sources\uip\uip_arp.c
+      1          
+      2          /*
+      3           * \addtogroup uip
+      4           * @{
+      5           */
+      6          
+      7          /**
+      8           * \defgroup uiparp uIP Address Resolution Protocol
+      9           * @{
+     10           *
+     11           * The Address Resolution Protocol ARP is used for mapping between IP
+     12           * addresses and link level addresses such as the Ethernet MAC
+     13           * addresses. ARP uses broadcast queries to ask for the link level
+     14           * address of a known IP address and the host which is configured with
+     15           * the IP address for which the query was meant, will respond with its
+     16           * link level address.
+     17           *
+     18           * \note This ARP implementation only supports Ethernet.
+     19           */
+     20           
+     21          /**
+     22           * \file
+     23           * Implementation of the ARP Address Resolution Protocol.
+     24           * \author Adam Dunkels <adam@dunkels.com>
+     25           *
+     26           */
+     27          
+     28          /*
+     29           * Copyright (c) 2001-2003, Adam Dunkels.
+     30           * All rights reserved.
+     31           *
+     32           * Redistribution and use in source and binary forms, with or without
+     33           * modification, are permitted provided that the following conditions
+     34           * are met:
+     35           * 1. Redistributions of source code must retain the above copyright
+     36           *    notice, this list of conditions and the following disclaimer.
+     37           * 2. Redistributions in binary form must reproduce the above copyright
+     38           *    notice, this list of conditions and the following disclaimer in the
+     39           *    documentation and/or other materials provided with the distribution.
+     40           * 3. The name of the author may not be used to endorse or promote
+     41           *    products derived from this software without specific prior
+     42           *    written permission.
+     43           *
+     44           * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS
+     45           * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+     46           * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+     47           * ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
+     48           * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+     49           * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
+     50           * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+     51           * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+     52           * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+     53           * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+     54           * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+     55           *
+     56           * This file is part of the uIP TCP/IP stack.
+     57           *
+     58           * $Id: uip_arp.c,v 1.8 2006/06/02 23:36:21 adam Exp $
+     59           *
+     60           */
+     61          
+     62          
+     63          #include "uip_arp.h"
+     64          
+     65          #include <string.h>
+
+   \                                 In section .text, align 4
+   \   __??Code32?? __intrinsic __code __interwork void *memcpy(void *, void const *, size_t)
+   \                     memcpy:
+   \   00000000   70402DE9           PUSH     {R4-R6,LR}
+   \   00000004   0040B0E1           MOVS     R4,R0
+   \   00000008   0150B0E1           MOVS     R5,R1
+   \   0000000C   0260B0E1           MOVS     R6,R2
+   \   00000010   0620B0E1           MOVS     R2,R6
+   \   00000014   0510B0E1           MOVS     R1,R5
+   \   00000018   0400B0E1           MOVS     R0,R4
+   \   0000001C   ........           BL       __aeabi_memcpy
+   \   00000020   0400B0E1           MOVS     R0,R4
+   \   00000024   7040BDE8           POP      {R4-R6,LR}
+   \   00000028   1EFF2FE1           BX       LR               ;; return
+
+   \                                 In section .text, align 4
+   \   __??Code32?? __intrinsic __code __interwork void *memset(void *, int, size_t)
+   \                     memset:
+   \   00000000   70402DE9           PUSH     {R4-R6,LR}
+   \   00000004   0040B0E1           MOVS     R4,R0
+   \   00000008   0150B0E1           MOVS     R5,R1
+   \   0000000C   0260B0E1           MOVS     R6,R2
+   \   00000010   0520B0E1           MOVS     R2,R5
+   \   00000014   0610B0E1           MOVS     R1,R6
+   \   00000018   0400B0E1           MOVS     R0,R4
+   \   0000001C   ........           BL       __aeabi_memset
+   \   00000020   0400B0E1           MOVS     R0,R4
+   \   00000024   7040BDE8           POP      {R4-R6,LR}
+   \   00000028   1EFF2FE1           BX       LR               ;; return
+     66          
+     67          struct arp_hdr {
+     68            struct uip_eth_hdr ethhdr;
+     69            u16_t hwtype;
+     70            u16_t protocol;
+     71            u8_t hwlen;
+     72            u8_t protolen;
+     73            u16_t opcode;
+     74            struct uip_eth_addr shwaddr;
+     75            u16_t sipaddr[2];
+     76            struct uip_eth_addr dhwaddr;
+     77            u16_t dipaddr[2];
+     78          };
+     79          
+     80          struct ethip_hdr {
+     81            struct uip_eth_hdr ethhdr;
+     82            /* IP header. */
+     83            u8_t vhl,
+     84              tos,
+     85              len[2],
+     86              ipid[2],
+     87              ipoffset[2],
+     88              ttl,
+     89              proto;
+     90            u16_t ipchksum;
+     91            u16_t srcipaddr[2],
+     92              destipaddr[2];
+     93          };
+     94          
+     95          #define ARP_REQUEST 1
+     96          #define ARP_REPLY   2
+     97          
+     98          #define ARP_HWTYPE_ETH 1
+     99          
+    100          struct arp_entry {
+    101            u16_t ipaddr[2];
+    102            struct uip_eth_addr ethaddr;
+    103            u8_t time;
+    104          };
+    105          
+
+   \                                 In section .rodata, align 4
+    106          static const struct uip_eth_addr broadcast_ethaddr =
+   \                     broadcast_ethaddr:
+   \   00000000   FFFFFFFFFFFF       DC8 255, 255, 255, 255, 255, 255, 0, 0
+   \              0000        
+    107            {{0xff,0xff,0xff,0xff,0xff,0xff}};
+
+   \                                 In section .rodata, align 4
+    108          static const u16_t broadcast_ipaddr[2] = {0xffff,0xffff};
+   \                     broadcast_ipaddr:
+   \   00000000   FFFFFFFF           DC16 65535, 65535
+    109          
+
+   \                                 In section .bss, align 4
+    110          static struct arp_entry arp_table[UIP_ARPTAB_SIZE];
+   \                     arp_table:
+   \   00000000                      DS8 96
+
+   \                                 In section .bss, align 4
+    111          static u16_t ipaddr[2];
+   \                     ipaddr:
+   \   00000000                      DS8 4
+
+   \                                 In section .bss, align 1
+    112          static u8_t i, c;
+   \                     i:
+   \   00000000                      DS8 1
+
+   \                                 In section .bss, align 1
+   \                     c:
+   \   00000000                      DS8 1
+    113          
+
+   \                                 In section .bss, align 1
+    114          static u8_t arptime;
+   \                     arptime:
+   \   00000000                      DS8 1
+
+   \                                 In section .bss, align 1
+    115          static u8_t tmpage;
+   \                     tmpage:
+   \   00000000                      DS8 1
+    116          
+    117          #define BUF   ((struct arp_hdr *)&uip_buf[0])
+    118          #define IPBUF ((struct ethip_hdr *)&uip_buf[0])
+    119          /*-----------------------------------------------------------------------------------*/
+    120          /**
+    121           * Initialize the ARP module.
+    122           *
+    123           */
+    124          /*-----------------------------------------------------------------------------------*/
+
+   \                                 In section .text, align 4, keep-with-next
+    125          void
+    126          uip_arp_init(void)
+    127          {
+   \                     uip_arp_init:
+   \   00000000   00502DE9           PUSH     {R12,LR}
+    128            for(i = 0; i < UIP_ARPTAB_SIZE; ++i) {
+   \   00000004   ........           LDR      R0,??DataTable106  ;; i
+   \   00000008   0010A0E3           MOV      R1,#+0
+   \   0000000C   0010C0E5           STRB     R1,[R0, #+0]
+   \                     ??uip_arp_init_0:
+   \   00000010   ........           LDR      R0,??DataTable106  ;; i
+   \   00000014   0000D0E5           LDRB     R0,[R0, #+0]
+   \   00000018   080050E3           CMP      R0,#+8
+   \   0000001C   0D00002A           BCS      ??uip_arp_init_1
+    129              memset(arp_table[i].ipaddr, 0, 4);
+   \   00000020   0420A0E3           MOV      R2,#+4
+   \   00000024   0010A0E3           MOV      R1,#+0
+   \   00000028   ........           LDR      R0,??DataTable106  ;; i
+   \   0000002C   0000D0E5           LDRB     R0,[R0, #+0]
+   \   00000030   0C30A0E3           MOV      R3,#+12
+   \   00000034   ........           LDR      R12,??DataTable103  ;; arp_table
+   \   00000038   93C020E0           MLA      R0,R3,R0,R12
+   \   0000003C   ........           BL       memset
+    130            }
+   \   00000040   ........           LDR      R0,??DataTable106  ;; i
+   \   00000044   0000D0E5           LDRB     R0,[R0, #+0]
+   \   00000048   010090E2           ADDS     R0,R0,#+1
+   \   0000004C   ........           LDR      R1,??DataTable106  ;; i
+   \   00000050   0000C1E5           STRB     R0,[R1, #+0]
+   \   00000054   EDFFFFEA           B        ??uip_arp_init_0
+    131          }
+   \                     ??uip_arp_init_1:
+   \   00000058   0140BDE8           POP      {R0,LR}
+   \   0000005C   1EFF2FE1           BX       LR               ;; return
+    132          /*-----------------------------------------------------------------------------------*/
+    133          /**
+    134           * Periodic ARP processing function.
+    135           *
+    136           * This function performs periodic timer processing in the ARP module
+    137           * and should be called at regular intervals. The recommended interval
+    138           * is 10 seconds between the calls.
+    139           *
+    140           */
+    141          /*-----------------------------------------------------------------------------------*/
+
+   \                                 In section .text, align 4, keep-with-next
+    142          void
+    143          uip_arp_timer(void)
+    144          {
+   \                     uip_arp_timer:
+   \   00000000   10402DE9           PUSH     {R4,LR}
+    145            struct arp_entry *tabptr;
+    146            
+    147            ++arptime;
+   \   00000004   ........           LDR      R0,??DataTable41  ;; arptime
+   \   00000008   0000D0E5           LDRB     R0,[R0, #+0]
+   \   0000000C   010090E2           ADDS     R0,R0,#+1
+   \   00000010   ........           LDR      R1,??DataTable41  ;; arptime
+   \   00000014   0000C1E5           STRB     R0,[R1, #+0]
+    148            for(i = 0; i < UIP_ARPTAB_SIZE; ++i) {
+   \   00000018   ........           LDR      R0,??DataTable106  ;; i
+   \   0000001C   0010A0E3           MOV      R1,#+0
+   \   00000020   0010C0E5           STRB     R1,[R0, #+0]
+   \                     ??uip_arp_timer_0:
+   \   00000024   ........           LDR      R0,??DataTable106  ;; i
+   \   00000028   0000D0E5           LDRB     R0,[R0, #+0]
+   \   0000002C   080050E3           CMP      R0,#+8
+   \   00000030   1C00002A           BCS      ??uip_arp_timer_1
+    149              tabptr = &arp_table[i];
+   \   00000034   ........           LDR      R0,??DataTable106  ;; i
+   \   00000038   0000D0E5           LDRB     R0,[R0, #+0]
+   \   0000003C   0C10A0E3           MOV      R1,#+12
+   \   00000040   ........           LDR      R2,??DataTable103  ;; arp_table
+   \   00000044   912020E0           MLA      R0,R1,R0,R2
+   \   00000048   0040B0E1           MOVS     R4,R0
+    150              if((tabptr->ipaddr[0] | tabptr->ipaddr[1]) != 0 &&
+    151                 arptime - tabptr->time >= UIP_ARP_MAXAGE) {
+   \   0000004C   B000D4E1           LDRH     R0,[R4, #+0]
+   \   00000050   B210D4E1           LDRH     R1,[R4, #+2]
+   \   00000054   000091E1           ORRS     R0,R1,R0
+   \   00000058   0008A0E1           MOV      R0,R0, LSL #+16
+   \   0000005C   2008B0E1           MOVS     R0,R0, LSR #+16
+   \   00000060   000050E3           CMP      R0,#+0
+   \   00000064   0900000A           BEQ      ??uip_arp_timer_2
+   \   00000068   ........           LDR      R0,??DataTable41  ;; arptime
+   \   0000006C   0000D0E5           LDRB     R0,[R0, #+0]
+   \   00000070   0A10D4E5           LDRB     R1,[R4, #+10]
+   \   00000074   010050E0           SUBS     R0,R0,R1
+   \   00000078   780050E3           CMP      R0,#+120
+   \   0000007C   030000BA           BLT      ??uip_arp_timer_2
+    152                memset(tabptr->ipaddr, 0, 4);
+   \   00000080   0420A0E3           MOV      R2,#+4
+   \   00000084   0010A0E3           MOV      R1,#+0
+   \   00000088   0400B0E1           MOVS     R0,R4
+   \   0000008C   ........           BL       memset
+    153              }
+    154            }
+   \                     ??uip_arp_timer_2:
+   \   00000090   ........           LDR      R0,??DataTable106  ;; i
+   \   00000094   0000D0E5           LDRB     R0,[R0, #+0]
+   \   00000098   010090E2           ADDS     R0,R0,#+1
+   \   0000009C   ........           LDR      R1,??DataTable106  ;; i
+   \   000000A0   0000C1E5           STRB     R0,[R1, #+0]
+   \   000000A4   DEFFFFEA           B        ??uip_arp_timer_0
+    155          
+    156          }
+   \                     ??uip_arp_timer_1:
+   \   000000A8   1040BDE8           POP      {R4,LR}
+   \   000000AC   1EFF2FE1           BX       LR               ;; return
+    157          /*-----------------------------------------------------------------------------------*/
+
+   \                                 In section .text, align 4, keep-with-next
+    158          static void
+    159          uip_arp_update(u16_t *ipaddr, struct uip_eth_addr *ethaddr)
+    160          {
+   \                     uip_arp_update:
+   \   00000000   70402DE9           PUSH     {R4-R6,LR}
+   \   00000004   0040B0E1           MOVS     R4,R0
+   \   00000008   0150B0E1           MOVS     R5,R1
+    161            register struct arp_entry *tabptr;
+    162            /* Walk through the ARP mapping table and try to find an entry to
+    163               update. If none is found, the IP -> MAC address mapping is
+    164               inserted in the ARP table. */
+    165            for(i = 0; i < UIP_ARPTAB_SIZE; ++i) {
+   \   0000000C   ........           LDR      R0,??DataTable106  ;; i
+   \   00000010   0010A0E3           MOV      R1,#+0
+   \   00000014   0010C0E5           STRB     R1,[R0, #+0]
+   \                     ??uip_arp_update_0:
+   \   00000018   ........           LDR      R0,??DataTable106  ;; i
+   \   0000001C   0000D0E5           LDRB     R0,[R0, #+0]
+   \   00000020   080050E3           CMP      R0,#+8
+   \   00000024   2100002A           BCS      ??uip_arp_update_1
+    166          
+    167              tabptr = &arp_table[i];
+   \   00000028   ........           LDR      R0,??DataTable106  ;; i
+   \   0000002C   0000D0E5           LDRB     R0,[R0, #+0]
+   \   00000030   0C10A0E3           MOV      R1,#+12
+   \   00000034   ........           LDR      R2,??DataTable103  ;; arp_table
+   \   00000038   912020E0           MLA      R0,R1,R0,R2
+   \   0000003C   0060B0E1           MOVS     R6,R0
+    168              /* Only check those entries that are actually in use. */
+    169              if(tabptr->ipaddr[0] != 0 &&
+    170                 tabptr->ipaddr[1] != 0) {
+   \   00000040   B000D6E1           LDRH     R0,[R6, #+0]
+   \   00000044   000050E3           CMP      R0,#+0
+   \   00000048   1200000A           BEQ      ??uip_arp_update_2
+   \   0000004C   B200D6E1           LDRH     R0,[R6, #+2]
+   \   00000050   000050E3           CMP      R0,#+0
+   \   00000054   0F00000A           BEQ      ??uip_arp_update_2
+    171          
+    172                /* Check if the source IP address of the incoming packet matches
+    173                   the IP address in this ARP table entry. */
+    174                if(ipaddr[0] == tabptr->ipaddr[0] &&
+    175          	 ipaddr[1] == tabptr->ipaddr[1]) {
+   \   00000058   B000D4E1           LDRH     R0,[R4, #+0]
+   \   0000005C   B010D6E1           LDRH     R1,[R6, #+0]
+   \   00000060   010050E1           CMP      R0,R1
+   \   00000064   0B00001A           BNE      ??uip_arp_update_3
+   \   00000068   B200D4E1           LDRH     R0,[R4, #+2]
+   \   0000006C   B210D6E1           LDRH     R1,[R6, #+2]
+   \   00000070   010050E1           CMP      R0,R1
+   \   00000074   0700001A           BNE      ??uip_arp_update_3
+    176          	 
+    177          	/* An old entry found, update this and return. */
+    178          	memcpy(tabptr->ethaddr.addr, ethaddr->addr, 6);
+   \   00000078   0620A0E3           MOV      R2,#+6
+   \   0000007C   0510B0E1           MOVS     R1,R5
+   \   00000080   040096E2           ADDS     R0,R6,#+4
+   \   00000084   ........           BL       memcpy
+    179          	tabptr->time = arptime;
+   \   00000088   ........           LDR      R0,??DataTable41  ;; arptime
+   \   0000008C   0000D0E5           LDRB     R0,[R0, #+0]
+   \   00000090   0A00C6E5           STRB     R0,[R6, #+10]
+    180          
+    181          	return;
+   \   00000094   620000EA           B        ??uip_arp_update_4
+    182                }
+    183              }
+    184            }
+   \                     ??uip_arp_update_3:
+   \                     ??uip_arp_update_2:
+   \   00000098   ........           LDR      R0,??DataTable106  ;; i
+   \   0000009C   0000D0E5           LDRB     R0,[R0, #+0]
+   \   000000A0   010090E2           ADDS     R0,R0,#+1
+   \   000000A4   ........           LDR      R1,??DataTable106  ;; i
+   \   000000A8   0000C1E5           STRB     R0,[R1, #+0]
+   \   000000AC   D9FFFFEA           B        ??uip_arp_update_0
+    185          
+    186            /* If we get here, no existing ARP table entry was found, so we
+    187               create one. */
+    188          
+    189            /* First, we try to find an unused entry in the ARP table. */
+    190            for(i = 0; i < UIP_ARPTAB_SIZE; ++i) {
+   \                     ??uip_arp_update_1:
+   \   000000B0   ........           LDR      R0,??DataTable106  ;; i
+   \   000000B4   0010A0E3           MOV      R1,#+0
+   \   000000B8   0010C0E5           STRB     R1,[R0, #+0]
+   \                     ??uip_arp_update_5:
+   \   000000BC   ........           LDR      R0,??DataTable106  ;; i
+   \   000000C0   0000D0E5           LDRB     R0,[R0, #+0]
+   \   000000C4   080050E3           CMP      R0,#+8
+   \   000000C8   1100002A           BCS      ??uip_arp_update_6
+    191              tabptr = &arp_table[i];
+   \   000000CC   ........           LDR      R0,??DataTable106  ;; i
+   \   000000D0   0000D0E5           LDRB     R0,[R0, #+0]
+   \   000000D4   0C10A0E3           MOV      R1,#+12
+   \   000000D8   ........           LDR      R2,??DataTable103  ;; arp_table
+   \   000000DC   912020E0           MLA      R0,R1,R0,R2
+   \   000000E0   0060B0E1           MOVS     R6,R0
+    192              if(tabptr->ipaddr[0] == 0 &&
+    193                 tabptr->ipaddr[1] == 0) {
+   \   000000E4   B000D6E1           LDRH     R0,[R6, #+0]
+   \   000000E8   000050E3           CMP      R0,#+0
+   \   000000EC   0200001A           BNE      ??uip_arp_update_7
+   \   000000F0   B200D6E1           LDRH     R0,[R6, #+2]
+   \   000000F4   000050E3           CMP      R0,#+0
+   \   000000F8   0500000A           BEQ      ??uip_arp_update_8
+    194                break;
+    195              }
+    196            }
+   \                     ??uip_arp_update_7:
+   \   000000FC   ........           LDR      R0,??DataTable106  ;; i
+   \   00000100   0000D0E5           LDRB     R0,[R0, #+0]
+   \   00000104   010090E2           ADDS     R0,R0,#+1
+   \   00000108   ........           LDR      R1,??DataTable106  ;; i
+   \   0000010C   0000C1E5           STRB     R0,[R1, #+0]
+   \   00000110   E9FFFFEA           B        ??uip_arp_update_5
+    197          
+    198            /* If no unused entry is found, we try to find the oldest entry and
+    199               throw it away. */
+    200            if(i == UIP_ARPTAB_SIZE) {
+   \                     ??uip_arp_update_6:
+   \                     ??uip_arp_update_8:
+   \   00000114   ........           LDR      R0,??DataTable106  ;; i
+   \   00000118   0000D0E5           LDRB     R0,[R0, #+0]
+   \   0000011C   080050E3           CMP      R0,#+8
+   \   00000120   3400001A           BNE      ??uip_arp_update_9
+    201              tmpage = 0;
+   \   00000124   00019FE5           LDR      R0,??uip_arp_update_10  ;; tmpage
+   \   00000128   0010A0E3           MOV      R1,#+0
+   \   0000012C   0010C0E5           STRB     R1,[R0, #+0]
+    202              c = 0;
+   \   00000130   F8009FE5           LDR      R0,??uip_arp_update_10+0x4  ;; c
+   \   00000134   0010A0E3           MOV      R1,#+0
+   \   00000138   0010C0E5           STRB     R1,[R0, #+0]
+    203              for(i = 0; i < UIP_ARPTAB_SIZE; ++i) {
+   \   0000013C   ........           LDR      R0,??DataTable106  ;; i
+   \   00000140   0010A0E3           MOV      R1,#+0
+   \   00000144   0010C0E5           STRB     R1,[R0, #+0]
+   \                     ??uip_arp_update_11:
+   \   00000148   ........           LDR      R0,??DataTable106  ;; i
+   \   0000014C   0000D0E5           LDRB     R0,[R0, #+0]
+   \   00000150   080050E3           CMP      R0,#+8
+   \   00000154   1D00002A           BCS      ??uip_arp_update_12
+    204                tabptr = &arp_table[i];
+   \   00000158   ........           LDR      R0,??DataTable106  ;; i
+   \   0000015C   0000D0E5           LDRB     R0,[R0, #+0]
+   \   00000160   0C10A0E3           MOV      R1,#+12
+   \   00000164   ........           LDR      R2,??DataTable103  ;; arp_table
+   \   00000168   912020E0           MLA      R0,R1,R0,R2
+   \   0000016C   0060B0E1           MOVS     R6,R0
+    205                if(arptime - tabptr->time > tmpage) {
+   \   00000170   B4009FE5           LDR      R0,??uip_arp_update_10  ;; tmpage
+   \   00000174   0000D0E5           LDRB     R0,[R0, #+0]
+   \   00000178   ........           LDR      R1,??DataTable41  ;; arptime
+   \   0000017C   0010D1E5           LDRB     R1,[R1, #+0]
+   \   00000180   0A20D6E5           LDRB     R2,[R6, #+10]
+   \   00000184   021051E0           SUBS     R1,R1,R2
+   \   00000188   010050E1           CMP      R0,R1
+   \   0000018C   090000AA           BGE      ??uip_arp_update_13
+    206          	tmpage = arptime - tabptr->time;
+   \   00000190   ........           LDR      R0,??DataTable41  ;; arptime
+   \   00000194   0000D0E5           LDRB     R0,[R0, #+0]
+   \   00000198   0A10D6E5           LDRB     R1,[R6, #+10]
+   \   0000019C   010050E0           SUBS     R0,R0,R1
+   \   000001A0   84109FE5           LDR      R1,??uip_arp_update_10  ;; tmpage
+   \   000001A4   0000C1E5           STRB     R0,[R1, #+0]
+    207          	c = i;
+   \   000001A8   80009FE5           LDR      R0,??uip_arp_update_10+0x4  ;; c
+   \   000001AC   ........           LDR      R1,??DataTable106  ;; i
+   \   000001B0   0010D1E5           LDRB     R1,[R1, #+0]
+   \   000001B4   0010C0E5           STRB     R1,[R0, #+0]
+    208                }
+    209              }
+   \                     ??uip_arp_update_13:
+   \   000001B8   ........           LDR      R0,??DataTable106  ;; i
+   \   000001BC   0000D0E5           LDRB     R0,[R0, #+0]
+   \   000001C0   010090E2           ADDS     R0,R0,#+1
+   \   000001C4   ........           LDR      R1,??DataTable106  ;; i
+   \   000001C8   0000C1E5           STRB     R0,[R1, #+0]
+   \   000001CC   DDFFFFEA           B        ??uip_arp_update_11
+    210              i = c;
+   \                     ??uip_arp_update_12:
+   \   000001D0   ........           LDR      R0,??DataTable106  ;; i
+   \   000001D4   54109FE5           LDR      R1,??uip_arp_update_10+0x4  ;; c
+   \   000001D8   0010D1E5           LDRB     R1,[R1, #+0]
+   \   000001DC   0010C0E5           STRB     R1,[R0, #+0]
+    211              tabptr = &arp_table[i];
+   \   000001E0   ........           LDR      R0,??DataTable106  ;; i
+   \   000001E4   0000D0E5           LDRB     R0,[R0, #+0]
+   \   000001E8   0C10A0E3           MOV      R1,#+12
+   \   000001EC   ........           LDR      R2,??DataTable103  ;; arp_table
+   \   000001F0   912020E0           MLA      R0,R1,R0,R2
+   \   000001F4   0060B0E1           MOVS     R6,R0
+    212            }
+    213          
+    214            /* Now, i is the ARP table entry which we will fill with the new
+    215               information. */
+    216            memcpy(tabptr->ipaddr, ipaddr, 4);
+   \                     ??uip_arp_update_9:
+   \   000001F8   0420A0E3           MOV      R2,#+4
+   \   000001FC   0410B0E1           MOVS     R1,R4
+   \   00000200   0600B0E1           MOVS     R0,R6
+   \   00000204   ........           BL       memcpy
+    217            memcpy(tabptr->ethaddr.addr, ethaddr->addr, 6);
+   \   00000208   0620A0E3           MOV      R2,#+6
+   \   0000020C   0510B0E1           MOVS     R1,R5
+   \   00000210   040096E2           ADDS     R0,R6,#+4
+   \   00000214   ........           BL       memcpy
+    218            tabptr->time = arptime;
+   \   00000218   ........           LDR      R0,??DataTable41  ;; arptime
+   \   0000021C   0000D0E5           LDRB     R0,[R0, #+0]
+   \   00000220   0A00C6E5           STRB     R0,[R6, #+10]
+    219          }
+   \                     ??uip_arp_update_4:
+   \   00000224   7040BDE8           POP      {R4-R6,LR}
+   \   00000228   1EFF2FE1           BX       LR               ;; return
+   \                     ??uip_arp_update_10:
+   \   0000022C   ........           DC32     tmpage
+   \   00000230   ........           DC32     c
+    220          /*-----------------------------------------------------------------------------------*/
+    221          /**
+    222           * ARP processing for incoming IP packets
+    223           *
+    224           * This function should be called by the device driver when an IP
+    225           * packet has been received. The function will check if the address is
+    226           * in the ARP cache, and if so the ARP cache entry will be
+    227           * refreshed. If no ARP cache entry was found, a new one is created.
+    228           *
+    229           * This function expects an IP packet with a prepended Ethernet header
+    230           * in the uip_buf[] buffer, and the length of the packet in the global
+    231           * variable uip_len.
+    232           */
+    233          /*-----------------------------------------------------------------------------------*/
+    234          #if 1
+
+   \                                 In section .text, align 4, keep-with-next
+    235          void
+    236          uip_arp_ipin(void)
+    237          {
+   \                     uip_arp_ipin:
+   \   00000000   00502DE9           PUSH     {R12,LR}
+    238            uip_len -= sizeof(struct uip_eth_hdr);
+   \   00000004   ........           LDR      R0,??DataTable127  ;; uip_len
+   \   00000008   B000D0E1           LDRH     R0,[R0, #+0]
+   \   0000000C   0E0050E2           SUBS     R0,R0,#+14
+   \   00000010   ........           LDR      R1,??DataTable127  ;; uip_len
+   \   00000014   B000C1E1           STRH     R0,[R1, #+0]
+    239          	
+    240            /* Only insert/update an entry if the source IP address of the
+    241               incoming IP packet comes from a host on the local network. */
+    242            if((IPBUF->srcipaddr[0] & uip_netmask[0]) !=
+    243               (uip_hostaddr[0] & uip_netmask[0])) {
+   \   00000018   6C009FE5           LDR      R0,??uip_arp_ipin_0  ;; uip_buf + 26
+   \   0000001C   B000D0E1           LDRH     R0,[R0, #+0]
+   \   00000020   ........           LDR      R1,??DataTable93  ;; uip_netmask
+   \   00000024   B010D1E1           LDRH     R1,[R1, #+0]
+   \   00000028   000011E0           ANDS     R0,R1,R0
+   \   0000002C   ........           LDR      R1,??DataTable116  ;; uip_hostaddr
+   \   00000030   B010D1E1           LDRH     R1,[R1, #+0]
+   \   00000034   ........           LDR      R2,??DataTable93  ;; uip_netmask
+   \   00000038   B020D2E1           LDRH     R2,[R2, #+0]
+   \   0000003C   011012E0           ANDS     R1,R2,R1
+   \   00000040   010050E1           CMP      R0,R1
+   \   00000044   0E00001A           BNE      ??uip_arp_ipin_1
+    244              return;
+    245            }
+    246            if((IPBUF->srcipaddr[1] & uip_netmask[1]) !=
+    247               (uip_hostaddr[1] & uip_netmask[1])) {
+   \                     ??uip_arp_ipin_2:
+   \   00000048   ........           LDR      R0,??DataTable115  ;; uip_buf + 28
+   \   0000004C   B000D0E1           LDRH     R0,[R0, #+0]
+   \   00000050   ........           LDR      R1,??DataTable97  ;; uip_netmask + 2
+   \   00000054   B010D1E1           LDRH     R1,[R1, #+0]
+   \   00000058   000011E0           ANDS     R0,R1,R0
+   \   0000005C   ........           LDR      R1,??DataTable118  ;; uip_hostaddr + 2
+   \   00000060   B010D1E1           LDRH     R1,[R1, #+0]
+   \   00000064   ........           LDR      R2,??DataTable97  ;; uip_netmask + 2
+   \   00000068   B020D2E1           LDRH     R2,[R2, #+0]
+   \   0000006C   011012E0           ANDS     R1,R2,R1
+   \   00000070   010050E1           CMP      R0,R1
+   \   00000074   0200001A           BNE      ??uip_arp_ipin_1
+    248              return;
+    249            }
+    250            uip_arp_update(IPBUF->srcipaddr, &(IPBUF->ethhdr.src));
+   \                     ??uip_arp_ipin_3:
+   \   00000078   ........           LDR      R1,??DataTable124  ;; uip_buf + 6
+   \   0000007C   08009FE5           LDR      R0,??uip_arp_ipin_0  ;; uip_buf + 26
+   \   00000080   ........           BL       uip_arp_update
+    251            
+    252            return;
+   \                     ??uip_arp_ipin_1:
+   \   00000084   0140BDE8           POP      {R0,LR}
+   \   00000088   1EFF2FE1           BX       LR               ;; return
+   \                     ??uip_arp_ipin_0:
+   \   0000008C   ........           DC32     uip_buf + 26
+    253          }
+    254          #endif /* 0 */
+    255          /*-----------------------------------------------------------------------------------*/
+    256          /**
+    257           * ARP processing for incoming ARP packets.
+    258           *
+    259           * This function should be called by the device driver when an ARP
+    260           * packet has been received. The function will act differently
+    261           * depending on the ARP packet type: if it is a reply for a request
+    262           * that we previously sent out, the ARP cache will be filled in with
+    263           * the values from the ARP reply. If the incoming ARP packet is an ARP
+    264           * request for our IP address, an ARP reply packet is created and put
+    265           * into the uip_buf[] buffer.
+    266           *
+    267           * When the function returns, the value of the global variable uip_len
+    268           * indicates whether the device driver should send out a packet or
+    269           * not. If uip_len is zero, no packet should be sent. If uip_len is
+    270           * non-zero, it contains the length of the outbound packet that is
+    271           * present in the uip_buf[] buffer.
+    272           *
+    273           * This function expects an ARP packet with a prepended Ethernet
+    274           * header in the uip_buf[] buffer, and the length of the packet in the
+    275           * global variable uip_len.
+    276           */
+    277          /*-----------------------------------------------------------------------------------*/
+
+   \                                 In section .text, align 4, keep-with-next
+    278          void
+    279          uip_arp_arpin(void)
+    280          {
+   \                     uip_arp_arpin:
+   \   00000000   00502DE9           PUSH     {R12,LR}
+    281            
+    282            if(uip_len < sizeof(struct arp_hdr)) {
+   \   00000004   ........           LDR      R0,??DataTable127  ;; uip_len
+   \   00000008   B000D0E1           LDRH     R0,[R0, #+0]
+   \   0000000C   2A0050E3           CMP      R0,#+42
+   \   00000010   0300002A           BCS      ??uip_arp_arpin_0
+    283              uip_len = 0;
+   \   00000014   ........           LDR      R0,??DataTable127  ;; uip_len
+   \   00000018   0010A0E3           MOV      R1,#+0
+   \   0000001C   B010C0E1           STRH     R1,[R0, #+0]
+    284              return;
+   \   00000020   520000EA           B        ??uip_arp_arpin_1
+    285            }
+    286            uip_len = 0;
+   \                     ??uip_arp_arpin_0:
+   \   00000024   ........           LDR      R0,??DataTable127  ;; uip_len
+   \   00000028   0010A0E3           MOV      R1,#+0
+   \   0000002C   B010C0E1           STRH     R1,[R0, #+0]
+    287            
+    288            switch(BUF->opcode) {
+   \   00000030   ........           LDR      R0,??DataTable119  ;; uip_buf + 20
+   \   00000034   B000D0E1           LDRH     R0,[R0, #+0]
+   \   00000038   400F50E3           CMP      R0,#+256
+   \   0000003C   0200000A           BEQ      ??uip_arp_arpin_2
+   \   00000040   800F50E3           CMP      R0,#+512
+   \   00000044   3A00000A           BEQ      ??uip_arp_arpin_3
+   \   00000048   480000EA           B        ??uip_arp_arpin_4
+    289            case HTONS(ARP_REQUEST):
+    290              /* ARP request. If it asked for our address, we send out a
+    291                 reply. */
+    292              if(uip_ipaddr_cmp(BUF->dipaddr, uip_hostaddr)) {
+   \                     ??uip_arp_arpin_2:
+   \   0000004C   ........           LDR      R0,??DataTable113  ;; uip_buf + 38
+   \   00000050   B000D0E1           LDRH     R0,[R0, #+0]
+   \   00000054   ........           LDR      R1,??DataTable116  ;; uip_hostaddr
+   \   00000058   B010D1E1           LDRH     R1,[R1, #+0]
+   \   0000005C   010050E1           CMP      R0,R1
+   \   00000060   3200001A           BNE      ??uip_arp_arpin_5
+   \   00000064   ........           LDR      R0,??DataTable114  ;; uip_buf + 40
+   \   00000068   B000D0E1           LDRH     R0,[R0, #+0]
+   \   0000006C   ........           LDR      R1,??DataTable118  ;; uip_hostaddr + 2
+   \   00000070   B010D1E1           LDRH     R1,[R1, #+0]
+   \   00000074   010050E1           CMP      R0,R1
+   \   00000078   2C00001A           BNE      ??uip_arp_arpin_5
+    293                /* First, we register the one who made the request in our ARP
+    294          	 table, since it is likely that we will do more communication
+    295          	 with this host in the future. */
+    296                uip_arp_update(BUF->sipaddr, &BUF->shwaddr);
+   \   0000007C   ........           LDR      R1,??DataTable112  ;; uip_buf + 22
+   \   00000080   ........           LDR      R0,??DataTable115  ;; uip_buf + 28
+   \   00000084   ........           BL       uip_arp_update
+    297                
+    298                /* The reply opcode is 2. */
+    299                BUF->opcode = HTONS(2);
+   \   00000088   ........           LDR      R0,??DataTable119  ;; uip_buf + 20
+   \   0000008C   801FA0E3           MOV      R1,#+512
+   \   00000090   B010C0E1           STRH     R1,[R0, #+0]
+    300          
+    301                memcpy(BUF->dhwaddr.addr, BUF->shwaddr.addr, 6);
+   \   00000094   0620A0E3           MOV      R2,#+6
+   \   00000098   ........           LDR      R1,??DataTable112  ;; uip_buf + 22
+   \   0000009C   ........           LDR      R0,??DataTable108  ;; uip_buf + 32
+   \   000000A0   ........           BL       memcpy
+    302                memcpy(BUF->shwaddr.addr, uip_ethaddr.addr, 6);
+   \   000000A4   0620A0E3           MOV      R2,#+6
+   \   000000A8   ........           LDR      R1,??DataTable123  ;; uip_ethaddr
+   \   000000AC   ........           LDR      R0,??DataTable112  ;; uip_buf + 22
+   \   000000B0   ........           BL       memcpy
+    303                memcpy(BUF->ethhdr.src.addr, uip_ethaddr.addr, 6);
+   \   000000B4   0620A0E3           MOV      R2,#+6
+   \   000000B8   ........           LDR      R1,??DataTable123  ;; uip_ethaddr
+   \   000000BC   ........           LDR      R0,??DataTable124  ;; uip_buf + 6
+   \   000000C0   ........           BL       memcpy
+    304                memcpy(BUF->ethhdr.dest.addr, BUF->dhwaddr.addr, 6);
+   \   000000C4   0620A0E3           MOV      R2,#+6
+   \   000000C8   ........           LDR      R1,??DataTable108  ;; uip_buf + 32
+   \   000000CC   ........           LDR      R0,??DataTable122  ;; uip_buf
+   \   000000D0   ........           BL       memcpy
+    305                
+    306                BUF->dipaddr[0] = BUF->sipaddr[0];
+   \   000000D4   ........           LDR      R0,??DataTable113  ;; uip_buf + 38
+   \   000000D8   ........           LDR      R1,??DataTable115  ;; uip_buf + 28
+   \   000000DC   B010D1E1           LDRH     R1,[R1, #+0]
+   \   000000E0   B010C0E1           STRH     R1,[R0, #+0]
+    307                BUF->dipaddr[1] = BUF->sipaddr[1];
+   \   000000E4   ........           LDR      R0,??DataTable114  ;; uip_buf + 40
+   \   000000E8   ........           LDR      R1,??DataTable117  ;; uip_buf + 30
+   \   000000EC   B010D1E1           LDRH     R1,[R1, #+0]
+   \   000000F0   B010C0E1           STRH     R1,[R0, #+0]
+    308                BUF->sipaddr[0] = uip_hostaddr[0];
+   \   000000F4   ........           LDR      R0,??DataTable115  ;; uip_buf + 28
+   \   000000F8   ........           LDR      R1,??DataTable116  ;; uip_hostaddr
+   \   000000FC   B010D1E1           LDRH     R1,[R1, #+0]
+   \   00000100   B010C0E1           STRH     R1,[R0, #+0]
+    309                BUF->sipaddr[1] = uip_hostaddr[1];
+   \   00000104   ........           LDR      R0,??DataTable117  ;; uip_buf + 30
+   \   00000108   ........           LDR      R1,??DataTable118  ;; uip_hostaddr + 2
+   \   0000010C   B010D1E1           LDRH     R1,[R1, #+0]
+   \   00000110   B010C0E1           STRH     R1,[R0, #+0]
+    310          
+    311                BUF->ethhdr.type = HTONS(UIP_ETHTYPE_ARP);
+   \   00000114   ........           LDR      R0,??DataTable125  ;; uip_buf + 12
+   \   00000118   0810A0E3           MOV      R1,#+8
+   \   0000011C   601E81E3           ORR      R1,R1,#0x600
+   \   00000120   B010C0E1           STRH     R1,[R0, #+0]
+    312                uip_len = sizeof(struct arp_hdr);
+   \   00000124   ........           LDR      R0,??DataTable127  ;; uip_len
+   \   00000128   2A10A0E3           MOV      R1,#+42
+   \   0000012C   B010C0E1           STRH     R1,[R0, #+0]
+   \                     ??uip_arp_arpin_5:
+   \   00000130   0E0000EA           B        ??uip_arp_arpin_6
+    313              }
+    314              break;
+    315            case HTONS(ARP_REPLY):
+    316              /* ARP reply. We insert or update the ARP table if it was meant
+    317                 for us. */
+    318              if(uip_ipaddr_cmp(BUF->dipaddr, uip_hostaddr)) {
+   \                     ??uip_arp_arpin_3:
+   \   00000134   ........           LDR      R0,??DataTable113  ;; uip_buf + 38
+   \   00000138   B000D0E1           LDRH     R0,[R0, #+0]
+   \   0000013C   ........           LDR      R1,??DataTable116  ;; uip_hostaddr
+   \   00000140   B010D1E1           LDRH     R1,[R1, #+0]
+   \   00000144   010050E1           CMP      R0,R1
+   \   00000148   0800001A           BNE      ??uip_arp_arpin_7
+   \   0000014C   ........           LDR      R0,??DataTable114  ;; uip_buf + 40
+   \   00000150   B000D0E1           LDRH     R0,[R0, #+0]
+   \   00000154   ........           LDR      R1,??DataTable118  ;; uip_hostaddr + 2
+   \   00000158   B010D1E1           LDRH     R1,[R1, #+0]
+   \   0000015C   010050E1           CMP      R0,R1
+   \   00000160   0200001A           BNE      ??uip_arp_arpin_7
+    319                uip_arp_update(BUF->sipaddr, &BUF->shwaddr);
+   \   00000164   ........           LDR      R1,??DataTable112  ;; uip_buf + 22
+   \   00000168   ........           LDR      R0,??DataTable115  ;; uip_buf + 28
+   \   0000016C   ........           BL       uip_arp_update
+    320              }
+    321              break;
+    322            }
+    323          
+    324            return;
+   \                     ??uip_arp_arpin_7:
+   \                     ??uip_arp_arpin_6:
+   \                     ??uip_arp_arpin_4:
+   \                     ??uip_arp_arpin_1:
+   \   00000170   0140BDE8           POP      {R0,LR}
+   \   00000174   1EFF2FE1           BX       LR               ;; return
+    325          }
+    326          /*-----------------------------------------------------------------------------------*/
+    327          /**
+    328           * Prepend Ethernet header to an outbound IP packet and see if we need
+    329           * to send out an ARP request.
+    330           *
+    331           * This function should be called before sending out an IP packet. The
+    332           * function checks the destination IP address of the IP packet to see
+    333           * what Ethernet MAC address that should be used as a destination MAC
+    334           * address on the Ethernet.
+    335           *
+    336           * If the destination IP address is in the local network (determined
+    337           * by logical ANDing of netmask and our IP address), the function
+    338           * checks the ARP cache to see if an entry for the destination IP
+    339           * address is found. If so, an Ethernet header is prepended and the
+    340           * function returns. If no ARP cache entry is found for the
+    341           * destination IP address, the packet in the uip_buf[] is replaced by
+    342           * an ARP request packet for the IP address. The IP packet is dropped
+    343           * and it is assumed that they higher level protocols (e.g., TCP)
+    344           * eventually will retransmit the dropped packet.
+    345           *
+    346           * If the destination IP address is not on the local network, the IP
+    347           * address of the default router is used instead.
+    348           *
+    349           * When the function returns, a packet is present in the uip_buf[]
+    350           * buffer, and the length of the packet is in the global variable
+    351           * uip_len.
+    352           */
+    353          /*-----------------------------------------------------------------------------------*/
+
+   \                                 In section .text, align 4, keep-with-next
+    354          void
+    355          uip_arp_out(void)
+    356          {
+   \                     uip_arp_out:
+   \   00000000   10402DE9           PUSH     {R4,LR}
+    357            struct arp_entry *tabptr;
+    358            
+    359            /* Find the destination IP address in the ARP table and construct
+    360               the Ethernet header. If the destination IP addres isn't on the
+    361               local network, we use the default router's IP address instead.
+    362          
+    363               If not ARP table entry is found, we overwrite the original IP
+    364               packet with an ARP request for the IP address. */
+    365          
+    366            /* First check if destination is a local broadcast. */
+    367            if(uip_ipaddr_cmp(IPBUF->destipaddr, broadcast_ipaddr)) {
+   \   00000004   ........           LDR      R0,??DataTable117  ;; uip_buf + 30
+   \   00000008   B000D0E1           LDRH     R0,[R0, #+0]
+   \   0000000C   8C129FE5           LDR      R1,??uip_arp_out_0  ;; broadcast_ipaddr
+   \   00000010   B010D1E1           LDRH     R1,[R1, #+0]
+   \   00000014   010050E1           CMP      R0,R1
+   \   00000018   0A00001A           BNE      ??uip_arp_out_1
+   \   0000001C   ........           LDR      R0,??DataTable108  ;; uip_buf + 32
+   \   00000020   B000D0E1           LDRH     R0,[R0, #+0]
+   \   00000024   78129FE5           LDR      R1,??uip_arp_out_0+0x4  ;; broadcast_ipaddr + 2
+   \   00000028   B010D1E1           LDRH     R1,[R1, #+0]
+   \   0000002C   010050E1           CMP      R0,R1
+   \   00000030   0400001A           BNE      ??uip_arp_out_1
+    368              memcpy(IPBUF->ethhdr.dest.addr, broadcast_ethaddr.addr, 6);
+   \   00000034   0620A0E3           MOV      R2,#+6
+   \   00000038   68129FE5           LDR      R1,??uip_arp_out_0+0x8  ;; broadcast_ethaddr
+   \   0000003C   ........           LDR      R0,??DataTable122  ;; uip_buf
+   \   00000040   ........           BL       memcpy
+   \   00000044   870000EA           B        ??uip_arp_out_2
+    369            } else {
+    370              /* Check if the destination address is on the local network. */
+    371              if(!uip_ipaddr_maskcmp(IPBUF->destipaddr, uip_hostaddr, uip_netmask)) {
+   \                     ??uip_arp_out_1:
+   \   00000048   ........           LDR      R0,??DataTable117  ;; uip_buf + 30
+   \   0000004C   B000D0E1           LDRH     R0,[R0, #+0]
+   \   00000050   ........           LDR      R1,??DataTable93  ;; uip_netmask
+   \   00000054   B010D1E1           LDRH     R1,[R1, #+0]
+   \   00000058   000011E0           ANDS     R0,R1,R0
+   \   0000005C   ........           LDR      R1,??DataTable116  ;; uip_hostaddr
+   \   00000060   B010D1E1           LDRH     R1,[R1, #+0]
+   \   00000064   ........           LDR      R2,??DataTable93  ;; uip_netmask
+   \   00000068   B020D2E1           LDRH     R2,[R2, #+0]
+   \   0000006C   011012E0           ANDS     R1,R2,R1
+   \   00000070   010050E1           CMP      R0,R1
+   \   00000074   0B00001A           BNE      ??uip_arp_out_3
+   \   00000078   ........           LDR      R0,??DataTable108  ;; uip_buf + 32
+   \   0000007C   B000D0E1           LDRH     R0,[R0, #+0]
+   \   00000080   ........           LDR      R1,??DataTable97  ;; uip_netmask + 2
+   \   00000084   B010D1E1           LDRH     R1,[R1, #+0]
+   \   00000088   000011E0           ANDS     R0,R1,R0
+   \   0000008C   ........           LDR      R1,??DataTable118  ;; uip_hostaddr + 2
+   \   00000090   B010D1E1           LDRH     R1,[R1, #+0]
+   \   00000094   ........           LDR      R2,??DataTable97  ;; uip_netmask + 2
+   \   00000098   B020D2E1           LDRH     R2,[R2, #+0]
+   \   0000009C   011012E0           ANDS     R1,R2,R1
+   \   000000A0   010050E1           CMP      R0,R1
+   \   000000A4   0800000A           BEQ      ??uip_arp_out_4
+    372                /* Destination address was not on the local network, so we need to
+    373          	 use the default router's IP address instead of the destination
+    374          	 address when determining the MAC address. */
+    375                uip_ipaddr_copy(ipaddr, uip_draddr);
+   \                     ??uip_arp_out_3:
+   \   000000A8   FC019FE5           LDR      R0,??uip_arp_out_0+0xC  ;; ipaddr
+   \   000000AC   FC119FE5           LDR      R1,??uip_arp_out_0+0x10  ;; uip_draddr
+   \   000000B0   B010D1E1           LDRH     R1,[R1, #+0]
+   \   000000B4   B010C0E1           STRH     R1,[R0, #+0]
+   \   000000B8   F4019FE5           LDR      R0,??uip_arp_out_0+0x14  ;; ipaddr + 2
+   \   000000BC   F4119FE5           LDR      R1,??uip_arp_out_0+0x18  ;; uip_draddr + 2
+   \   000000C0   B010D1E1           LDRH     R1,[R1, #+0]
+   \   000000C4   B010C0E1           STRH     R1,[R0, #+0]
+   \   000000C8   070000EA           B        ??uip_arp_out_5
+    376              } else {
+    377                /* Else, we use the destination IP address. */
+    378                uip_ipaddr_copy(ipaddr, IPBUF->destipaddr);
+   \                     ??uip_arp_out_4:
+   \   000000CC   ........           LDR      R0,??DataTable117  ;; uip_buf + 30
+   \   000000D0   B000D0E1           LDRH     R0,[R0, #+0]
+   \   000000D4   D0119FE5           LDR      R1,??uip_arp_out_0+0xC  ;; ipaddr
+   \   000000D8   B000C1E1           STRH     R0,[R1, #+0]
+   \   000000DC   D0019FE5           LDR      R0,??uip_arp_out_0+0x14  ;; ipaddr + 2
+   \   000000E0   ........           LDR      R1,??DataTable108  ;; uip_buf + 32
+   \   000000E4   B010D1E1           LDRH     R1,[R1, #+0]
+   \   000000E8   B010C0E1           STRH     R1,[R0, #+0]
+    379              }
+    380                
+    381              for(i = 0; i < UIP_ARPTAB_SIZE; ++i) {
+   \                     ??uip_arp_out_5:
+   \   000000EC   ........           LDR      R0,??DataTable106  ;; i
+   \   000000F0   0010A0E3           MOV      R1,#+0
+   \   000000F4   0010C0E5           STRB     R1,[R0, #+0]
+   \                     ??uip_arp_out_6:
+   \   000000F8   ........           LDR      R0,??DataTable106  ;; i
+   \   000000FC   0000D0E5           LDRB     R0,[R0, #+0]
+   \   00000100   080050E3           CMP      R0,#+8
+   \   00000104   1500002A           BCS      ??uip_arp_out_7
+    382                tabptr = &arp_table[i];
+   \   00000108   ........           LDR      R0,??DataTable106  ;; i
+   \   0000010C   0000D0E5           LDRB     R0,[R0, #+0]
+   \   00000110   0C10A0E3           MOV      R1,#+12
+   \   00000114   ........           LDR      R2,??DataTable103  ;; arp_table
+   \   00000118   912020E0           MLA      R0,R1,R0,R2
+   \   0000011C   0040B0E1           MOVS     R4,R0
+    383                if(uip_ipaddr_cmp(ipaddr, tabptr->ipaddr)) {
+   \   00000120   84019FE5           LDR      R0,??uip_arp_out_0+0xC  ;; ipaddr
+   \   00000124   B000D0E1           LDRH     R0,[R0, #+0]
+   \   00000128   B010D4E1           LDRH     R1,[R4, #+0]
+   \   0000012C   010050E1           CMP      R0,R1
+   \   00000130   0400001A           BNE      ??uip_arp_out_8
+   \   00000134   78019FE5           LDR      R0,??uip_arp_out_0+0x14  ;; ipaddr + 2
+   \   00000138   B000D0E1           LDRH     R0,[R0, #+0]
+   \   0000013C   B210D4E1           LDRH     R1,[R4, #+2]
+   \   00000140   010050E1           CMP      R0,R1
+   \   00000144   0500000A           BEQ      ??uip_arp_out_9
+    384          	break;
+    385                }
+    386              }
+   \                     ??uip_arp_out_8:
+   \   00000148   ........           LDR      R0,??DataTable106  ;; i
+   \   0000014C   0000D0E5           LDRB     R0,[R0, #+0]
+   \   00000150   010090E2           ADDS     R0,R0,#+1
+   \   00000154   ........           LDR      R1,??DataTable106  ;; i
+   \   00000158   0000C1E5           STRB     R0,[R1, #+0]
+   \   0000015C   E5FFFFEA           B        ??uip_arp_out_6
+    387          
+    388              if(i == UIP_ARPTAB_SIZE) {
+   \                     ??uip_arp_out_7:
+   \                     ??uip_arp_out_9:
+   \   00000160   ........           LDR      R0,??DataTable106  ;; i
+   \   00000164   0000D0E5           LDRB     R0,[R0, #+0]
+   \   00000168   080050E3           CMP      R0,#+8
+   \   0000016C   3900001A           BNE      ??uip_arp_out_10
+    389                /* The destination address was not in our ARP table, so we
+    390          	 overwrite the IP packet with an ARP request. */
+    391          
+    392                memset(BUF->ethhdr.dest.addr, 0xff, 6);
+   \   00000170   0620A0E3           MOV      R2,#+6
+   \   00000174   FF10A0E3           MOV      R1,#+255
+   \   00000178   ........           LDR      R0,??DataTable122  ;; uip_buf
+   \   0000017C   ........           BL       memset
+    393                memset(BUF->dhwaddr.addr, 0x00, 6);
+   \   00000180   0620A0E3           MOV      R2,#+6
+   \   00000184   0010A0E3           MOV      R1,#+0
+   \   00000188   ........           LDR      R0,??DataTable108  ;; uip_buf + 32
+   \   0000018C   ........           BL       memset
+    394                memcpy(BUF->ethhdr.src.addr, uip_ethaddr.addr, 6);
+   \   00000190   0620A0E3           MOV      R2,#+6
+   \   00000194   ........           LDR      R1,??DataTable123  ;; uip_ethaddr
+   \   00000198   ........           LDR      R0,??DataTable124  ;; uip_buf + 6
+   \   0000019C   ........           BL       memcpy
+    395                memcpy(BUF->shwaddr.addr, uip_ethaddr.addr, 6);
+   \   000001A0   0620A0E3           MOV      R2,#+6
+   \   000001A4   ........           LDR      R1,??DataTable123  ;; uip_ethaddr
+   \   000001A8   ........           LDR      R0,??DataTable112  ;; uip_buf + 22
+   \   000001AC   ........           BL       memcpy
+    396              
+    397                uip_ipaddr_copy(BUF->dipaddr, ipaddr);
+   \   000001B0   ........           LDR      R0,??DataTable113  ;; uip_buf + 38
+   \   000001B4   F0109FE5           LDR      R1,??uip_arp_out_0+0xC  ;; ipaddr
+   \   000001B8   B010D1E1           LDRH     R1,[R1, #+0]
+   \   000001BC   B010C0E1           STRH     R1,[R0, #+0]
+   \   000001C0   ........           LDR      R0,??DataTable114  ;; uip_buf + 40
+   \   000001C4   E8109FE5           LDR      R1,??uip_arp_out_0+0x14  ;; ipaddr + 2
+   \   000001C8   B010D1E1           LDRH     R1,[R1, #+0]
+   \   000001CC   B010C0E1           STRH     R1,[R0, #+0]
+    398                uip_ipaddr_copy(BUF->sipaddr, uip_hostaddr);
+   \   000001D0   ........           LDR      R0,??DataTable115  ;; uip_buf + 28
+   \   000001D4   ........           LDR      R1,??DataTable116  ;; uip_hostaddr
+   \   000001D8   B010D1E1           LDRH     R1,[R1, #+0]
+   \   000001DC   B010C0E1           STRH     R1,[R0, #+0]
+   \   000001E0   ........           LDR      R0,??DataTable117  ;; uip_buf + 30
+   \   000001E4   ........           LDR      R1,??DataTable118  ;; uip_hostaddr + 2
+   \   000001E8   B010D1E1           LDRH     R1,[R1, #+0]
+   \   000001EC   B010C0E1           STRH     R1,[R0, #+0]
+    399                BUF->opcode = HTONS(ARP_REQUEST); /* ARP request. */
+   \   000001F0   ........           LDR      R0,??DataTable119  ;; uip_buf + 20
+   \   000001F4   401FA0E3           MOV      R1,#+256
+   \   000001F8   B010C0E1           STRH     R1,[R0, #+0]
+    400                BUF->hwtype = HTONS(ARP_HWTYPE_ETH);
+   \   000001FC   B8009FE5           LDR      R0,??uip_arp_out_0+0x1C  ;; uip_buf + 14
+   \   00000200   401FA0E3           MOV      R1,#+256
+   \   00000204   B010C0E1           STRH     R1,[R0, #+0]
+    401                BUF->protocol = HTONS(UIP_ETHTYPE_IP);
+   \   00000208   B0009FE5           LDR      R0,??uip_arp_out_0+0x20  ;; uip_buf + 16
+   \   0000020C   0810A0E3           MOV      R1,#+8
+   \   00000210   B010C0E1           STRH     R1,[R0, #+0]
+    402                BUF->hwlen = 6;
+   \   00000214   A8009FE5           LDR      R0,??uip_arp_out_0+0x24  ;; uip_buf + 18
+   \   00000218   0610A0E3           MOV      R1,#+6
+   \   0000021C   0010C0E5           STRB     R1,[R0, #+0]
+    403                BUF->protolen = 4;
+   \   00000220   A0009FE5           LDR      R0,??uip_arp_out_0+0x28  ;; uip_buf + 19
+   \   00000224   0410A0E3           MOV      R1,#+4
+   \   00000228   0010C0E5           STRB     R1,[R0, #+0]
+    404                BUF->ethhdr.type = HTONS(UIP_ETHTYPE_ARP);
+   \   0000022C   ........           LDR      R0,??DataTable125  ;; uip_buf + 12
+   \   00000230   0810A0E3           MOV      R1,#+8
+   \   00000234   601E81E3           ORR      R1,R1,#0x600
+   \   00000238   B010C0E1           STRH     R1,[R0, #+0]
+    405          
+    406                uip_appdata = &uip_buf[UIP_TCPIP_HLEN + UIP_LLH_LEN];
+   \   0000023C   88009FE5           LDR      R0,??uip_arp_out_0+0x2C  ;; uip_appdata
+   \   00000240   88109FE5           LDR      R1,??uip_arp_out_0+0x30  ;; uip_buf + 54
+   \   00000244   001080E5           STR      R1,[R0, #+0]
+    407              
+    408                uip_len = sizeof(struct arp_hdr);
+   \   00000248   ........           LDR      R0,??DataTable127  ;; uip_len
+   \   0000024C   2A10A0E3           MOV      R1,#+42
+   \   00000250   B010C0E1           STRH     R1,[R0, #+0]
+    409                return;
+   \   00000254   0F0000EA           B        ??uip_arp_out_11
+    410              }
+    411          
+    412              /* Build an ethernet header. */
+    413              memcpy(IPBUF->ethhdr.dest.addr, tabptr->ethaddr.addr, 6);
+   \                     ??uip_arp_out_10:
+   \   00000258   0620A0E3           MOV      R2,#+6
+   \   0000025C   041094E2           ADDS     R1,R4,#+4
+   \   00000260   ........           LDR      R0,??DataTable122  ;; uip_buf
+   \   00000264   ........           BL       memcpy
+    414            }
+    415            memcpy(IPBUF->ethhdr.src.addr, uip_ethaddr.addr, 6);
+   \                     ??uip_arp_out_2:
+   \   00000268   0620A0E3           MOV      R2,#+6
+   \   0000026C   ........           LDR      R1,??DataTable123  ;; uip_ethaddr
+   \   00000270   ........           LDR      R0,??DataTable124  ;; uip_buf + 6
+   \   00000274   ........           BL       memcpy
+    416            
+    417            IPBUF->ethhdr.type = HTONS(UIP_ETHTYPE_IP);
+   \   00000278   ........           LDR      R0,??DataTable125  ;; uip_buf + 12
+   \   0000027C   0810A0E3           MOV      R1,#+8
+   \   00000280   B010C0E1           STRH     R1,[R0, #+0]
+    418          
+    419            uip_len += sizeof(struct uip_eth_hdr);
+   \   00000284   ........           LDR      R0,??DataTable127  ;; uip_len
+   \   00000288   B000D0E1           LDRH     R0,[R0, #+0]
+   \   0000028C   0E0090E2           ADDS     R0,R0,#+14
+   \   00000290   ........           LDR      R1,??DataTable127  ;; uip_len
+   \   00000294   B000C1E1           STRH     R0,[R1, #+0]
+    420          }
+   \                     ??uip_arp_out_11:
+   \   00000298   1040BDE8           POP      {R4,LR}
+   \   0000029C   1EFF2FE1           BX       LR               ;; return
+   \                     ??uip_arp_out_0:
+   \   000002A0   ........           DC32     broadcast_ipaddr
+   \   000002A4   ........           DC32     broadcast_ipaddr + 2
+   \   000002A8   ........           DC32     broadcast_ethaddr
+   \   000002AC   ........           DC32     ipaddr
+   \   000002B0   ........           DC32     uip_draddr
+   \   000002B4   ........           DC32     ipaddr + 2
+   \   000002B8   ........           DC32     uip_draddr + 2
+   \   000002BC   ........           DC32     uip_buf + 14
+   \   000002C0   ........           DC32     uip_buf + 16
+   \   000002C4   ........           DC32     uip_buf + 18
+   \   000002C8   ........           DC32     uip_buf + 19
+   \   000002CC   ........           DC32     uip_appdata
+   \   000002D0   ........           DC32     uip_buf + 54
+
+   \                                 In section .text, align 4, keep-with-next
+   \                     ??DataTable41:
+   \   00000000   ........           DC32     arptime
+
+   \                                 In section .text, align 4, keep-with-next
+   \                     ??DataTable93:
+   \   00000000   ........           DC32     uip_netmask
+
+   \                                 In section .text, align 4, keep-with-next
+   \                     ??DataTable97:
+   \   00000000   ........           DC32     uip_netmask + 2
+
+   \                                 In section .text, align 4, keep-with-next
+   \                     ??DataTable103:
+   \   00000000   ........           DC32     arp_table
+
+   \                                 In section .text, align 4, keep-with-next
+   \                     ??DataTable106:
+   \   00000000   ........           DC32     i
+
+   \                                 In section .text, align 4, keep-with-next
+   \                     ??DataTable108:
+   \   00000000   ........           DC32     uip_buf + 32
+
+   \                                 In section .text, align 4, keep-with-next
+   \                     ??DataTable112:
+   \   00000000   ........           DC32     uip_buf + 22
+
+   \                                 In section .text, align 4, keep-with-next
+   \                     ??DataTable113:
+   \   00000000   ........           DC32     uip_buf + 38
+
+   \                                 In section .text, align 4, keep-with-next
+   \                     ??DataTable114:
+   \   00000000   ........           DC32     uip_buf + 40
+
+   \                                 In section .text, align 4, keep-with-next
+   \                     ??DataTable115:
+   \   00000000   ........           DC32     uip_buf + 28
+
+   \                                 In section .text, align 4, keep-with-next
+   \                     ??DataTable116:
+   \   00000000   ........           DC32     uip_hostaddr
+
+   \                                 In section .text, align 4, keep-with-next
+   \                     ??DataTable117:
+   \   00000000   ........           DC32     uip_buf + 30
+
+   \                                 In section .text, align 4, keep-with-next
+   \                     ??DataTable118:
+   \   00000000   ........           DC32     uip_hostaddr + 2
+
+   \                                 In section .text, align 4, keep-with-next
+   \                     ??DataTable119:
+   \   00000000   ........           DC32     uip_buf + 20
+
+   \                                 In section .text, align 4, keep-with-next
+   \                     ??DataTable122:
+   \   00000000   ........           DC32     uip_buf
+
+   \                                 In section .text, align 4, keep-with-next
+   \                     ??DataTable123:
+   \   00000000   ........           DC32     uip_ethaddr
+
+   \                                 In section .text, align 4, keep-with-next
+   \                     ??DataTable124:
+   \   00000000   ........           DC32     uip_buf + 6
+
+   \                                 In section .text, align 4, keep-with-next
+   \                     ??DataTable125:
+   \   00000000   ........           DC32     uip_buf + 12
+
+   \                                 In section .text, align 4, keep-with-next
+   \                     ??DataTable127:
+   \   00000000   ........           DC32     uip_len
+    421          /*-----------------------------------------------------------------------------------*/
+    422          
+    423          /** @} */
+    424          /** @} */
+
+   Maximum stack usage in bytes:
+
+     Function       .cstack
+     --------       -------
+     memcpy             16
+     memset             16
+     uip_arp_arpin       8
+     uip_arp_init        8
+     uip_arp_ipin        8
+     uip_arp_out         8
+     uip_arp_timer       8
+     uip_arp_update     16
+
+
+   Section sizes:
+
+     Function/Label    Bytes
+     --------------    -----
+     memcpy              44
+     memset              44
+     broadcast_ethaddr    8
+     broadcast_ipaddr     4
+     arp_table           96
+     ipaddr               4
+     i                    1
+     c                    1
+     arptime              1
+     tmpage               1
+     uip_arp_init        96
+     uip_arp_timer      176
+     uip_arp_update     564
+     uip_arp_ipin       144
+     uip_arp_arpin      376
+     uip_arp_out        724
+     ??DataTable41        4
+     ??DataTable93        4
+     ??DataTable97        4
+     ??DataTable103       4
+     ??DataTable106       4
+     ??DataTable108       4
+     ??DataTable112       4
+     ??DataTable113       4
+     ??DataTable114       4
+     ??DataTable115       4
+     ??DataTable116       4
+     ??DataTable117       4
+     ??DataTable118       4
+     ??DataTable119       4
+     ??DataTable122       4
+     ??DataTable123       4
+     ??DataTable124       4
+     ??DataTable125       4
+     ??DataTable127       4
+
+ 
+   104 bytes in section .bss
+    12 bytes in section .rodata
+ 2 244 bytes in section .text
+ 
+ 2 156 bytes of CODE  memory (+ 88 bytes shared)
+    12 bytes of CONST memory
+   104 bytes of DATA  memory
+
+Errors: none
+Warnings: none

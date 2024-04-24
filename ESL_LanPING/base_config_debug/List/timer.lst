@@ -1,0 +1,233 @@
+###############################################################################
+#                                                                             #
+# IAR ANSI C/C++ Compiler V5.30.0.51174/W32 for ARM     11/Nov/2009  14:17:12 #
+# Copyright 1999-2009 IAR Systems AB.                                         #
+#                                                                             #
+#    Cpu mode     =  arm                                                      #
+#    Endian       =  little                                                   #
+#    Source file  =  E:\PROJECTs\ARM\ESL_LanPING\Sources\uip\timer.c          #
+#    Command line =  E:\PROJECTs\ARM\ESL_LanPING\Sources\uip\timer.c -D       #
+#                    PROTO_BORD -lC E:\PROJECTs\ARM\ESL_LanPING\base_config_d #
+#                    ebug\List\ -o E:\PROJECTs\ARM\ESL_LanPING\base_config_de #
+#                    bug\Obj\ --no_cse --no_unroll --no_inline                #
+#                    --no_code_motion --no_tbaa --no_clustering               #
+#                    --no_scheduling --debug --endian=little --cpu=ARM7TDMI   #
+#                    -e --fpu=None --dlib_config "C:\Program Files\IAR        #
+#                    Systems\Embedded Workbench 5.4\arm\INC\DLib_Config_Norma #
+#                    l.h" -I E:\PROJECTs\ARM\ESL_LanPING\startups\ -I         #
+#                    E:\PROJECTs\ARM\ESL_LanPING\startups\at91sam7s32\ -I     #
+#                    E:\PROJECTs\ARM\ESL_LanPING\Sources\ -I                  #
+#                    E:\PROJECTs\ARM\ESL_LanPING\Sources\uip\ -I "C:\Program  #
+#                    Files\IAR Systems\Embedded Workbench 5.4\arm\INC\"       #
+#                    --interwork --cpu_mode arm -On                           #
+#    List file    =  E:\PROJECTs\ARM\ESL_LanPING\base_config_debug\List\timer #
+#                    .lst                                                     #
+#    Object file  =  E:\PROJECTs\ARM\ESL_LanPING\base_config_debug\Obj\timer. #
+#                    o                                                        #
+#                                                                             #
+#                                                                             #
+###############################################################################
+
+E:\PROJECTs\ARM\ESL_LanPING\Sources\uip\timer.c
+      1          //-------
+      2          /*
+      3           * \addtogroup timer
+      4           * @{
+      5           */
+      6          
+      7          /**
+      8           * \file
+      9           * Timer library implementation.
+     10           * \author
+     11           * Adam Dunkels <adam@sics.se>
+     12           */
+     13          
+     14          /*
+     15           * Copyright (c) 2004, Swedish Institute of Computer Science.
+     16           * All rights reserved.
+     17           *
+     18           * Redistribution and use in source and binary forms, with or without
+     19           * modification, are permitted provided that the following conditions
+     20           * are met:
+     21           * 1. Redistributions of source code must retain the above copyright
+     22           *    notice, this list of conditions and the following disclaimer.
+     23           * 2. Redistributions in binary form must reproduce the above copyright
+     24           *    notice, this list of conditions and the following disclaimer in the
+     25           *    documentation and/or other materials provided with the distribution.
+     26           * 3. Neither the name of the Institute nor the names of its contributors
+     27           *    may be used to endorse or promote products derived from this software
+     28           *    without specific prior written permission.
+     29           *
+     30           * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND
+     31           * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+     32           * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+     33           * ARE DISCLAIMED.  IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE
+     34           * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+     35           * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+     36           * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+     37           * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+     38           * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+     39           * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+     40           * SUCH DAMAGE.
+     41           *
+     42           * This file is part of the uIP TCP/IP stack
+     43           *
+     44           * Author: Adam Dunkels <adam@sics.se>
+     45           *
+     46           * $Id: timer.c,v 1.2 2006/06/12 08:00:30 adam Exp $
+     47           */
+     48          
+     49          #include "clock.h"
+     50          #include "timer.h"
+     51          
+     52          /*---------------------------------------------------------------------------*/
+     53          /**
+     54           * Set a timer.
+     55           *
+     56           * This function is used to set a timer for a time sometime in the
+     57           * future. The function timer_expired() will evaluate to true after
+     58           * the timer has expired.
+     59           *
+     60           * \param t A pointer to the timer
+     61           * \param interval The interval before the timer expires.
+     62           *
+     63           */
+
+   \                                 In section .text, align 4, keep-with-next
+     64          void
+     65          timer_set(struct timer *t, clock_time_t interval)
+     66          {
+   \                     timer_set:
+   \   00000000   38402DE9           PUSH     {R3-R5,LR}
+   \   00000004   0050B0E1           MOVS     R5,R0
+   \   00000008   0140B0E1           MOVS     R4,R1
+     67            t->interval = interval;
+   \   0000000C   044085E5           STR      R4,[R5, #+4]
+     68            t->start = clock_time();
+   \   00000010   ........           BL       clock_time
+   \   00000014   000085E5           STR      R0,[R5, #+0]
+     69          }
+   \   00000018   3140BDE8           POP      {R0,R4,R5,LR}
+   \   0000001C   1EFF2FE1           BX       LR               ;; return
+     70          /*---------------------------------------------------------------------------*/
+     71          /**
+     72           * Reset the timer with the same interval.
+     73           *
+     74           * This function resets the timer with the same interval that was
+     75           * given to the timer_set() function. The start point of the interval
+     76           * is the exact time that the timer last expired. Therefore, this
+     77           * function will cause the timer to be stable over time, unlike the
+     78           * timer_rester() function.
+     79           *
+     80           * \param t A pointer to the timer.
+     81           *
+     82           * \sa timer_restart()
+     83           */
+
+   \                                 In section .text, align 4, keep-with-next
+     84          void
+     85          timer_reset(struct timer *t)
+     86          {
+     87            t->start += t->interval;
+   \                     timer_reset:
+   \   00000000   001090E5           LDR      R1,[R0, #+0]
+   \   00000004   042090E5           LDR      R2,[R0, #+4]
+   \   00000008   011092E0           ADDS     R1,R2,R1
+   \   0000000C   001080E5           STR      R1,[R0, #+0]
+     88          }
+   \   00000010   1EFF2FE1           BX       LR               ;; return
+     89          /*---------------------------------------------------------------------------*/
+     90          /**
+     91           * Restart the timer from the current point in time
+     92           *
+     93           * This function restarts a timer with the same interval that was
+     94           * given to the timer_set() function. The timer will start at the
+     95           * current time.
+     96           *
+     97           * \note A periodic timer will drift if this function is used to reset
+     98           * it. For preioric timers, use the timer_reset() function instead.
+     99           *
+    100           * \param t A pointer to the timer.
+    101           *
+    102           * \sa timer_reset()
+    103           */
+
+   \                                 In section .text, align 4, keep-with-next
+    104          void
+    105          timer_restart(struct timer *t)
+    106          {
+   \                     timer_restart:
+   \   00000000   10402DE9           PUSH     {R4,LR}
+   \   00000004   0040B0E1           MOVS     R4,R0
+    107            t->start = clock_time();
+   \   00000008   ........           BL       clock_time
+   \   0000000C   000084E5           STR      R0,[R4, #+0]
+    108          }
+   \   00000010   1040BDE8           POP      {R4,LR}
+   \   00000014   1EFF2FE1           BX       LR               ;; return
+    109          /*---------------------------------------------------------------------------*/
+    110          /**
+    111           * Check if a timer has expired.
+    112           *
+    113           * This function tests if a timer has expired and returns true or
+    114           * false depending on its status.
+    115           *
+    116           * \param t A pointer to the timer
+    117           *
+    118           * \return Non-zero if the timer has expired, zero otherwise.
+    119           *
+    120           */
+
+   \                                 In section .text, align 4, keep-with-next
+    121          int
+    122          timer_expired(struct timer *t)
+    123          {
+   \                     timer_expired:
+   \   00000000   10402DE9           PUSH     {R4,LR}
+   \   00000004   0040B0E1           MOVS     R4,R0
+    124            return (clock_time_t)(clock_time() - t->start) >= (clock_time_t)t->interval;
+   \   00000008   ........           BL       clock_time
+   \   0000000C   001094E5           LDR      R1,[R4, #+0]
+   \   00000010   010050E0           SUBS     R0,R0,R1
+   \   00000014   041094E5           LDR      R1,[R4, #+4]
+   \   00000018   010050E1           CMP      R0,R1
+   \   0000001C   010000BA           BLT      ??timer_expired_0
+   \   00000020   0100A0E3           MOV      R0,#+1
+   \   00000024   000000EA           B        ??timer_expired_1
+   \                     ??timer_expired_0:
+   \   00000028   0000A0E3           MOV      R0,#+0
+   \                     ??timer_expired_1:
+   \   0000002C   FF0010E2           ANDS     R0,R0,#0xFF      ;; Zero extend
+   \   00000030   1040BDE8           POP      {R4,LR}
+   \   00000034   1EFF2FE1           BX       LR               ;; return
+    125          }
+    126          /*---------------------------------------------------------------------------*/
+    127          
+    128          /** @} */
+
+   Maximum stack usage in bytes:
+
+     Function      .cstack
+     --------      -------
+     timer_expired      8
+     timer_reset        0
+     timer_restart      8
+     timer_set         16
+
+
+   Section sizes:
+
+     Function/Label Bytes
+     -------------- -----
+     timer_set        32
+     timer_reset      20
+     timer_restart    24
+     timer_expired    56
+
+ 
+ 132 bytes in section .text
+ 
+ 132 bytes of CODE memory
+
+Errors: none
+Warnings: none

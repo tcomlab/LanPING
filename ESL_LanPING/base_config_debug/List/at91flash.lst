@@ -1,0 +1,404 @@
+###############################################################################
+#                                                                             #
+# IAR ANSI C/C++ Compiler V5.30.0.51174/W32 for ARM     11/Nov/2009  15:20:42 #
+# Copyright 1999-2009 IAR Systems AB.                                         #
+#                                                                             #
+#    Cpu mode     =  arm                                                      #
+#    Endian       =  little                                                   #
+#    Source file  =  E:\PROJECTs\ARM\ESL_LanPING\Sources\at91flash.c          #
+#    Command line =  E:\PROJECTs\ARM\ESL_LanPING\Sources\at91flash.c -D       #
+#                    PROTO_BORD -lC E:\PROJECTs\ARM\ESL_LanPING\base_config_d #
+#                    ebug\List\ -o E:\PROJECTs\ARM\ESL_LanPING\base_config_de #
+#                    bug\Obj\ --no_cse --no_unroll --no_inline                #
+#                    --no_code_motion --no_tbaa --no_clustering               #
+#                    --no_scheduling --debug --endian=little --cpu=ARM7TDMI   #
+#                    -e --fpu=None --dlib_config "C:\Program Files\IAR        #
+#                    Systems\Embedded Workbench 5.4\arm\INC\DLib_Config_Norma #
+#                    l.h" -I E:\PROJECTs\ARM\ESL_LanPING\startups\ -I         #
+#                    E:\PROJECTs\ARM\ESL_LanPING\startups\at91sam7s32\ -I     #
+#                    E:\PROJECTs\ARM\ESL_LanPING\Sources\ -I                  #
+#                    E:\PROJECTs\ARM\ESL_LanPING\Sources\uip\ -I "C:\Program  #
+#                    Files\IAR Systems\Embedded Workbench 5.4\arm\INC\"       #
+#                    --interwork --cpu_mode arm -On                           #
+#    List file    =  E:\PROJECTs\ARM\ESL_LanPING\base_config_debug\List\at91f #
+#                    lash.lst                                                 #
+#    Object file  =  E:\PROJECTs\ARM\ESL_LanPING\base_config_debug\Obj\at91fl #
+#                    ash.o                                                    #
+#                                                                             #
+#                                                                             #
+###############################################################################
+
+E:\PROJECTs\ARM\ESL_LanPING\Sources\at91flash.c
+      1          /*! \file at91flash.c \brief Internal FLASH Write Routines for Atmel AT91. */
+      2          //*****************************************************************************
+      3          //
+      4          // File Name	: 'at91flash.c'
+      5          // Title		: Internal FLASH Write Routines for Atmel AT91
+      6          // Author		: Pascal Stang - Copyright (C) 2006
+      7          // Created		: 9/20/2006
+      8          // Revised		: 9/25/2006
+      9          // Version		: 0.1
+     10          // Target MCU	: Atmel AT91 series
+     11          // Editor Tabs	: 4
+     12          //
+     13          // This code is distributed under the GNU Public License
+     14          //		which can be found at http://www.gnu.org/licenses/gpl.txt
+     15          //
+     16          //*****************************************************************************
+     17          
+     18          // system includes
+     19          #include "at91sam7s32.h"
+     20          
+     21          // local includes
+     22          #include "at91flash.h"
+     23          
+
+   \                                 In section .textrw, align 4, keep-with-next
+     24          __ramfunc void Rdelay_ms( unsigned short delay) // задержка
+     25          {
+     26          	unsigned short count,a;
+     27          	unsigned long count2;
+     28          
+     29          	for (count = 0; count < delay; count++) {
+   \                     Rdelay_ms:
+   \   00000000   00C0A0E3           MOV      R12,#+0
+   \   00000004   0C10B0E1           MOVS     R1,R12
+   \                     ??Rdelay_ms_0:
+   \   00000008   0118A0E1           MOV      R1,R1, LSL #+16
+   \   0000000C   2118B0E1           MOVS     R1,R1, LSR #+16
+   \   00000010   0008A0E1           MOV      R0,R0, LSL #+16
+   \   00000014   2008B0E1           MOVS     R0,R0, LSR #+16
+   \   00000018   000051E1           CMP      R1,R0
+   \   0000001C   0B00002A           BCS      ??Rdelay_ms_1
+     30          		for (count2 = 0;count2 <= 1850 ; count2++) {
+   \   00000020   00C0A0E3           MOV      R12,#+0
+   \   00000024   0C30B0E1           MOVS     R3,R12
+   \                     ??Rdelay_ms_2:
+   \   00000028   3BC0A0E3           MOV      R12,#+59
+   \   0000002C   70CE8CE3           ORR      R12,R12,#0x700
+   \   00000030   0C0053E1           CMP      R3,R12
+   \   00000034   0300002A           BCS      ??Rdelay_ms_3
+     31          			a = 1;
+   \   00000038   01C0A0E3           MOV      R12,#+1
+   \   0000003C   0C20B0E1           MOVS     R2,R12
+     32          			a = a;
+     33          			//WDT_RES();
+     34          		}
+   \   00000040   013093E2           ADDS     R3,R3,#+1
+   \   00000044   F7FFFFEA           B        ??Rdelay_ms_2
+     35          	}
+   \                     ??Rdelay_ms_3:
+   \   00000048   011091E2           ADDS     R1,R1,#+1
+   \   0000004C   EDFFFFEA           B        ??Rdelay_ms_0
+     36          }
+   \                     ??Rdelay_ms_1:
+   \   00000050   1EFF2FE1           BX       LR               ;; return
+     37          
+     38          #define F_CPU 48054857
+     39          
+
+   \                                 In section .textrw, align 4, keep-with-next
+     40          __ramfunc void at91flashInit(void)
+     41          {
+     42          	// set cycles-per-microsecond
+     43          	//  as per datasheet,
+     44          	//	- NVM bits require a setting of F_CPU/1000
+     45          	//	- general flash write requires a setting of 1.5*F_CPU/1000
+     46          	// (here we're extra conservative setting clock cycles equal to 2us)
+     47          	AT91C_BASE_MC->MC_FMR = (((F_CPU*2/1000)<<16) & AT91C_MC_FMCN);
+   \                     at91flashInit:
+   \   00000000   9F00E0E3           MVN      R0,#+159
+   \   00000004   6D18A0E3           MOV      R1,#+7143424
+   \   00000008   001080E5           STR      R1,[R0, #+0]
+     48          }
+   \   0000000C   1EFF2FE1           BX       LR               ;; return
+     49          
+
+   \                                 In section .textrw, align 4, keep-with-next
+     50          __ramfunc void at91flashWrite(unsigned int flashaddr, unsigned char* buffer, unsigned int len)
+     51          {
+   \                     at91flashWrite:
+   \   00000000   F8402DE9           PUSH     {R3-R7,LR}
+   \   00000004   0060B0E1           MOVS     R6,R0
+   \   00000008   0140B0E1           MOVS     R4,R1
+   \   0000000C   0270B0E1           MOVS     R7,R2
+     52          	int wrlen;
+     53          
+     54          	// do automatic multi-page writes
+     55          	while(len)
+   \                     ??at91flashWrite_0:
+   \   00000010   000057E3           CMP      R7,#+0
+   \   00000014   0E00000A           BEQ      ??at91flashWrite_1
+     56          	{
+     57                          Rdelay_ms(50);
+   \   00000018   3200A0E3           MOV      R0,#+50
+   \   0000001C   ........           BL       Rdelay_ms
+     58          		// determine how many bytes to write
+     59          		wrlen = (len<AT91C_IFLASH_PAGE_SIZE)?(len):(AT91C_IFLASH_PAGE_SIZE);
+   \   00000020   800057E3           CMP      R7,#+128
+   \   00000024   0100002A           BCS      ??at91flashWrite_2
+   \   00000028   0750B0E1           MOVS     R5,R7
+   \   0000002C   000000EA           B        ??at91flashWrite_3
+   \                     ??at91flashWrite_2:
+   \   00000030   8050A0E3           MOV      R5,#+128
+     60          		// write page
+     61          		at91flashWritePage(flashaddr, buffer, wrlen);
+   \                     ??at91flashWrite_3:
+   \   00000034   0520B0E1           MOVS     R2,R5
+   \   00000038   0410B0E1           MOVS     R1,R4
+   \   0000003C   0600B0E1           MOVS     R0,R6
+   \   00000040   ........           BL       at91flashWritePage
+     62          		// increment pointers
+     63          		flashaddr += wrlen;
+   \   00000044   066095E0           ADDS     R6,R5,R6
+     64          		buffer += wrlen;
+   \   00000048   044095E0           ADDS     R4,R5,R4
+     65          		// decrement remaining buffer size
+     66          		len -= wrlen;
+   \   0000004C   057057E0           SUBS     R7,R7,R5
+   \   00000050   EEFFFFEA           B        ??at91flashWrite_0
+     67          	}
+     68          }
+   \                     ??at91flashWrite_1:
+   \   00000054   F140BDE8           POP      {R0,R4-R7,LR}
+   \   00000058   1EFF2FE1           BX       LR               ;; return
+     69          
+
+   \                                 In section .textrw, align 4, keep-with-next
+     70          __ramfunc void at91flashWritePage(unsigned int flashaddr, unsigned char* buffer, unsigned int len)
+     71          {
+   \                     at91flashWritePage:
+   \   00000000   F0412DE9           PUSH     {R4-R8,LR}
+   \   00000004   0060B0E1           MOVS     R6,R0
+   \   00000008   0140B0E1           MOVS     R4,R1
+   \   0000000C   0250B0E1           MOVS     R5,R2
+     72          	int pageword;
+     73          	unsigned long* wrptr = (unsigned long*)flashaddr;
+   \   00000010   0680B0E1           MOVS     R8,R6
+     74          	
+     75          	// do write cycle
+     76          	// copy data to flash location
+     77          	for(pageword=0; pageword<(len/4); pageword++)
+   \   00000014   0000A0E3           MOV      R0,#+0
+   \   00000018   0070B0E1           MOVS     R7,R0
+   \                     ??at91flashWritePage_0:
+   \   0000001C   250157E1           CMP      R7,R5, LSR #+2
+   \   00000020   0E00002A           BCS      ??at91flashWritePage_1
+     78          	{
+     79          		// do the copy byte-wise because incoming buffer might not be word-aligned
+     80          		// NOTE: assuming little-endian source
+     81          		*wrptr++ = (buffer[3]<<24) | (buffer[2]<<16) | (buffer[1]<<8) | (buffer[0]<<0);
+   \   00000024   0300D4E5           LDRB     R0,[R4, #+3]
+   \   00000028   0210D4E5           LDRB     R1,[R4, #+2]
+   \   0000002C   0118B0E1           LSLS     R1,R1,#+16
+   \   00000030   000C91E1           ORRS     R0,R1,R0, LSL #+24
+   \   00000034   0110D4E5           LDRB     R1,[R4, #+1]
+   \   00000038   010490E1           ORRS     R0,R0,R1, LSL #+8
+   \   0000003C   0010D4E5           LDRB     R1,[R4, #+0]
+   \   00000040   000091E1           ORRS     R0,R1,R0
+   \   00000044   000088E5           STR      R0,[R8, #+0]
+   \   00000048   048098E2           ADDS     R8,R8,#+4
+     82          		buffer+=4;
+   \   0000004C   044094E2           ADDS     R4,R4,#+4
+     83                           Rdelay_ms(50);
+   \   00000050   3200A0E3           MOV      R0,#+50
+   \   00000054   ........           BL       Rdelay_ms
+     84          	}
+   \   00000058   017097E2           ADDS     R7,R7,#+1
+   \   0000005C   EEFFFFEA           B        ??at91flashWritePage_0
+     85          	// if the flash address does not begin on page boundary, then we do partial-page programming
+     86          	if( flashaddr & (AT91C_IFLASH_PAGE_SIZE-1) )
+   \                     ??at91flashWritePage_1:
+   \   00000060   7F0016E3           TST      R6,#0x7F
+   \   00000064   0500000A           BEQ      ??at91flashWritePage_2
+     87          		AT91C_BASE_MC->MC_FMR |= AT91C_MC_NEBP;
+   \   00000068   9F00E0E3           MVN      R0,#+159
+   \   0000006C   000090E5           LDR      R0,[R0, #+0]
+   \   00000070   800090E3           ORRS     R0,R0,#0x80
+   \   00000074   9F10E0E3           MVN      R1,#+159
+   \   00000078   000081E5           STR      R0,[R1, #+0]
+   \   0000007C   040000EA           B        ??at91flashWritePage_3
+     88          	else
+     89          		AT91C_BASE_MC->MC_FMR &= ~AT91C_MC_NEBP;
+   \                     ??at91flashWritePage_2:
+   \   00000080   9F00E0E3           MVN      R0,#+159
+   \   00000084   000090E5           LDR      R0,[R0, #+0]
+   \   00000088   8000D0E3           BICS     R0,R0,#0x80
+   \   0000008C   9F10E0E3           MVN      R1,#+159
+   \   00000090   000081E5           STR      R0,[R1, #+0]
+     90          	// write flash
+     91                   Rdelay_ms(50);
+   \                     ??at91flashWritePage_3:
+   \   00000094   3200A0E3           MOV      R0,#+50
+   \   00000098   ........           BL       Rdelay_ms
+     92          	AT91C_BASE_MC->MC_FCR = (0x5A<<24) | (((flashaddr/AT91C_IFLASH_PAGE_SIZE)<<8)&AT91C_MC_PAGEN) | AT91C_MC_FCMD_START_PROG;
+   \   0000009C   C00BA0E3           MOV      R0,#+196608
+   \   000000A0   FF0C80E3           ORR      R0,R0,#0xFF00
+   \   000000A4   860010E0           ANDS     R0,R0,R6, LSL #+1
+   \   000000A8   0110A0E3           MOV      R1,#+1
+   \   000000AC   5A1481E3           ORR      R1,R1,#0x5A000000
+   \   000000B0   000091E1           ORRS     R0,R1,R0
+   \   000000B4   9B10E0E3           MVN      R1,#+155
+   \   000000B8   000081E5           STR      R0,[R1, #+0]
+     93          	// wait for flash done/ready
+     94                   Rdelay_ms(50);
+   \   000000BC   3200A0E3           MOV      R0,#+50
+   \   000000C0   ........           BL       Rdelay_ms
+     95          	while(!(AT91C_BASE_MC->MC_FSR & AT91C_MC_FRDY))  Rdelay_ms(10);;
+   \                     ??at91flashWritePage_4:
+   \   000000C4   9700E0E3           MVN      R0,#+151
+   \   000000C8   000090E5           LDR      R0,[R0, #+0]
+   \   000000CC   010010E3           TST      R0,#0x1
+   \   000000D0   0200001A           BNE      ??at91flashWritePage_5
+   \   000000D4   0A00A0E3           MOV      R0,#+10
+   \   000000D8   ........           BL       Rdelay_ms
+   \   000000DC   F8FFFFEA           B        ??at91flashWritePage_4
+     96          }
+   \                     ??at91flashWritePage_5:
+   \   000000E0   F041BDE8           POP      {R4-R8,LR}
+   \   000000E4   1EFF2FE1           BX       LR               ;; return
+     97          
+
+   \                                 In section .textrw, align 4, keep-with-next
+     98          __ramfunc void at91flashErase(void)
+     99          {
+    100          	// erase flash
+    101          	AT91C_BASE_MC->MC_FCR = (0x5A<<24) | AT91C_MC_FCMD_ERASE_ALL;
+   \                     at91flashErase:
+   \   00000000   9B00E0E3           MVN      R0,#+155
+   \   00000004   0810A0E3           MOV      R1,#+8
+   \   00000008   5A1481E3           ORR      R1,R1,#0x5A000000
+   \   0000000C   001080E5           STR      R1,[R0, #+0]
+    102          	// wait for flash done/ready
+    103          	while(!(AT91C_BASE_MC->MC_FSR & AT91C_MC_FRDY));
+   \                     ??at91flashErase_0:
+   \   00000010   9700E0E3           MVN      R0,#+151
+   \   00000014   000090E5           LDR      R0,[R0, #+0]
+   \   00000018   010010E3           TST      R0,#0x1
+   \   0000001C   FBFFFF0A           BEQ      ??at91flashErase_0
+    104          }
+   \   00000020   1EFF2FE1           BX       LR               ;; return
+    105          
+
+   \                                 In section .textrw, align 4, keep-with-next
+    106          __ramfunc int at91flashGetLock(unsigned int flashaddr)
+    107          {
+   \                     at91flashGetLock:
+   \   00000000   0010B0E1           MOVS     R1,R0
+    108          	// mask flashaddr to size of flash
+    109          	flashaddr &= (AT91C_IFLASH_SIZE-1);
+   \   00000004   8108B0E1           LSLS     R0,R1,#+17
+   \   00000008   A018B0E1           LSRS     R1,R0,#+17
+    110          	// determine the lock state of a flash address/page
+    111          	if( AT91C_BASE_MC->MC_FSR & (1<<(16+(flashaddr/AT91C_IFLASH_LOCK_REGION_SIZE))) )
+   \   0000000C   9700E0E3           MVN      R0,#+151
+   \   00000010   000090E5           LDR      R0,[R0, #+0]
+   \   00000014   0120A0E3           MOV      R2,#+1
+   \   00000018   1030A0E3           MOV      R3,#+16
+   \   0000001C   213693E0           ADDS     R3,R3,R1, LSR #+12
+   \   00000020   120310E1           TST      R0,R2, LSL R3
+   \   00000024   0100000A           BEQ      ??at91flashGetLock_0
+    112          		return 1;	// region is locked
+   \   00000028   0100A0E3           MOV      R0,#+1
+   \   0000002C   000000EA           B        ??at91flashGetLock_1
+    113          	else
+    114          		return 0;	// region is not locked
+   \                     ??at91flashGetLock_0:
+   \   00000030   0000A0E3           MOV      R0,#+0
+   \                     ??at91flashGetLock_1:
+   \   00000034   1EFF2FE1           BX       LR               ;; return
+    115          }
+    116          
+
+   \                                 In section .textrw, align 4, keep-with-next
+    117          __ramfunc void at91flashSetLock(unsigned int flashaddr, int lockstate)
+    118          {
+   \                     at91flashSetLock:
+   \   00000000   38402DE9           PUSH     {R3-R5,LR}
+   \   00000004   0050B0E1           MOVS     R5,R0
+   \   00000008   0140B0E1           MOVS     R4,R1
+    119          	// set the lock state of a flash address/page
+    120          	
+    121          	// mask flashaddr to size of flash
+    122          	flashaddr &= (AT91C_IFLASH_SIZE-1);
+   \   0000000C   8508B0E1           LSLS     R0,R5,#+17
+   \   00000010   A058B0E1           LSRS     R5,R0,#+17
+    123          	// since lock bits have a small lifetime (100 programming cycles),
+    124          	// check to see if lock bit is already set to requested state
+    125          	if( at91flashGetLock(flashaddr) == lockstate)
+   \   00000014   0500B0E1           MOVS     R0,R5
+   \   00000018   ........           BL       at91flashGetLock
+   \   0000001C   040050E1           CMP      R0,R4
+   \   00000020   1600000A           BEQ      ??at91flashSetLock_0
+    126          		return;		// lock bit is already set as desired
+    127          	// program the lock bit
+    128          	if(lockstate)
+   \                     ??at91flashSetLock_1:
+   \   00000024   000054E3           CMP      R4,#+0
+   \   00000028   0800000A           BEQ      ??at91flashSetLock_2
+    129          		AT91C_BASE_MC->MC_FCR = (0x5A<<24) | (((flashaddr/AT91C_IFLASH_PAGE_SIZE)<<8)&AT91C_MC_PAGEN) | AT91C_MC_FCMD_LOCK;
+   \   0000002C   C00BA0E3           MOV      R0,#+196608
+   \   00000030   FF0C80E3           ORR      R0,R0,#0xFF00
+   \   00000034   850010E0           ANDS     R0,R0,R5, LSL #+1
+   \   00000038   0210A0E3           MOV      R1,#+2
+   \   0000003C   5A1481E3           ORR      R1,R1,#0x5A000000
+   \   00000040   000091E1           ORRS     R0,R1,R0
+   \   00000044   9B10E0E3           MVN      R1,#+155
+   \   00000048   000081E5           STR      R0,[R1, #+0]
+   \   0000004C   070000EA           B        ??at91flashSetLock_3
+    130          	else
+    131          		AT91C_BASE_MC->MC_FCR = (0x5A<<24) | (((flashaddr/AT91C_IFLASH_PAGE_SIZE)<<8)&AT91C_MC_PAGEN) | AT91C_MC_FCMD_UNLOCK;
+   \                     ??at91flashSetLock_2:
+   \   00000050   C00BA0E3           MOV      R0,#+196608
+   \   00000054   FF0C80E3           ORR      R0,R0,#0xFF00
+   \   00000058   850010E0           ANDS     R0,R0,R5, LSL #+1
+   \   0000005C   0410A0E3           MOV      R1,#+4
+   \   00000060   5A1481E3           ORR      R1,R1,#0x5A000000
+   \   00000064   000091E1           ORRS     R0,R1,R0
+   \   00000068   9B10E0E3           MVN      R1,#+155
+   \   0000006C   000081E5           STR      R0,[R1, #+0]
+    132          	// wait for flash done/ready
+    133          	while(!(AT91C_BASE_MC->MC_FSR & AT91C_MC_FRDY));
+   \                     ??at91flashSetLock_3:
+   \                     ??at91flashSetLock_4:
+   \   00000070   9700E0E3           MVN      R0,#+151
+   \   00000074   000090E5           LDR      R0,[R0, #+0]
+   \   00000078   010010E3           TST      R0,#0x1
+   \   0000007C   FBFFFF0A           BEQ      ??at91flashSetLock_4
+    134          }
+   \                     ??at91flashSetLock_0:
+   \   00000080   3140BDE8           POP      {R0,R4,R5,LR}
+   \   00000084   1EFF2FE1           BX       LR               ;; return
+
+   Maximum stack usage in bytes:
+
+     Function           .cstack
+     --------           -------
+     Rdelay_ms               0
+     at91flashErase          0
+     at91flashGetLock        0
+     at91flashInit           0
+     at91flashSetLock       16
+     at91flashWrite         24
+     at91flashWritePage     24
+
+
+   Section sizes:
+
+     Function/Label     Bytes
+     --------------     -----
+     Rdelay_ms            84
+     at91flashInit        16
+     at91flashWrite       92
+     at91flashWritePage  232
+     at91flashErase       36
+     at91flashGetLock     56
+     at91flashSetLock    136
+
+ 
+ 652 bytes in section .textrw
+ 
+ 652 bytes of CODE memory
+
+Errors: none
+Warnings: none

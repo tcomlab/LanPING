@@ -1,0 +1,1701 @@
+###############################################################################
+#                                                                             #
+# IAR ANSI C/C++ Compiler V5.30.0.51174/W32 for ARM     11/Nov/2009  15:20:44 #
+# Copyright 1999-2009 IAR Systems AB.                                         #
+#                                                                             #
+#    Cpu mode     =  arm                                                      #
+#    Endian       =  little                                                   #
+#    Source file  =  E:\PROJECTs\ARM\ESL_LanPING\Sources\main.c               #
+#    Command line =  E:\PROJECTs\ARM\ESL_LanPING\Sources\main.c -D            #
+#                    PROTO_BORD -lC E:\PROJECTs\ARM\ESL_LanPING\base_config_d #
+#                    ebug\List\ -o E:\PROJECTs\ARM\ESL_LanPING\base_config_de #
+#                    bug\Obj\ --no_cse --no_unroll --no_inline                #
+#                    --no_code_motion --no_tbaa --no_clustering               #
+#                    --no_scheduling --debug --endian=little --cpu=ARM7TDMI   #
+#                    -e --fpu=None --dlib_config "C:\Program Files\IAR        #
+#                    Systems\Embedded Workbench 5.4\arm\INC\DLib_Config_Norma #
+#                    l.h" -I E:\PROJECTs\ARM\ESL_LanPING\startups\ -I         #
+#                    E:\PROJECTs\ARM\ESL_LanPING\startups\at91sam7s32\ -I     #
+#                    E:\PROJECTs\ARM\ESL_LanPING\Sources\ -I                  #
+#                    E:\PROJECTs\ARM\ESL_LanPING\Sources\uip\ -I "C:\Program  #
+#                    Files\IAR Systems\Embedded Workbench 5.4\arm\INC\"       #
+#                    --interwork --cpu_mode arm -On                           #
+#    List file    =  E:\PROJECTs\ARM\ESL_LanPING\base_config_debug\List\main. #
+#                    lst                                                      #
+#    Object file  =  E:\PROJECTs\ARM\ESL_LanPING\base_config_debug\Obj\main.o #
+#                                                                             #
+#                                                                             #
+###############################################################################
+
+E:\PROJECTs\ARM\ESL_LanPING\Sources\main.c
+      1          // ------------------------------------------------------------------------/
+      2          // Main execution file
+      3          // Pinger device v 3.0.0
+      4          // ------------------------------------------------------------------------/
+      5          //-------------------------------------------------------------------------/
+      6          #include "main.h"
+      7          #include "CP2200.h"
+      8          //#include "USART.h"
+      9          #include "telnetd.h"
+     10          #include "uip.h"
+     11          #include "uip_arp.h"
+     12          #include "timer.h"
+     13          #include "at91flash.h"
+     14          #include "shell.h"
+     15          #include <stdio.h>
+     16          #define BUF ((struct uip_eth_hdr *)&uip_buf[0]) // изернет буфер
+     17          #define UIP_CONF_IPV6 0
+     18          
+
+   \                                 In section .bss, align 4
+     19          struct timer periodic_timer, arp_timer,time_to_ping,timeout_ping,sec_timer,reboot_timer;
+   \                     periodic_timer:
+   \   00000000                      DS8 8
+
+   \                                 In section .bss, align 4
+   \                     arp_timer:
+   \   00000000                      DS8 8
+
+   \                                 In section .bss, align 4
+   \                     time_to_ping:
+   \   00000000                      DS8 8
+
+   \                                 In section .bss, align 4
+   \                     timeout_ping:
+   \   00000000                      DS8 8
+
+   \                                 In section .bss, align 4
+   \                     sec_timer:
+   \   00000000                      DS8 8
+
+   \                                 In section .bss, align 4
+   \                     reboot_timer:
+   \   00000000                      DS8 8
+     20          /*---------------------------------------------------------------------------*/
+     21          extern void write_CP2200(int adr, char value);
+     22          extern char read_CP2200(int adr);
+     23          extern void network_device_init(void);
+     24          extern u16_t network_device_read(void);
+     25          extern void network_device_send(void);
+     26          extern unsigned char autorization;
+     27          extern char ping_flag; // если пришол ответ от хоста то флаг устанавливается
+
+   \                                 In section .bss, align 4
+     28          unsigned char setting_buf[SETTING_BUF_SIZE]; // буфер настроек
+   \                     setting_buf:
+   \   00000000                      DS8 56
+
+   \                                 In section .bss, align 1
+     29          unsigned char DEVICE_STATE = 0; // состояние устройства если 1 то устройство в режиме стоп!
+   \                     DEVICE_STATE:
+   \   00000000                      DS8 1
+
+   \                                 In section .bss, align 1
+     30          char sendPING = 0;
+   \                     sendPING:
+   \   00000000                      DS8 1
+     31          //static unsigned char setting_buf[SETTING_BUF_SIZE]; // буфер настроек
+     32          extern unsigned char DEBUG_TELNET;
+
+   \                                 In section .bss, align 4
+     33          clock_time_t  sec_counter;
+   \                     sec_counter:
+   \   00000000                      DS8 4
+
+   \                                 In section .bss, align 1
+     34          unsigned char s_uip_send=0;
+   \                     s_uip_send:
+   \   00000000                      DS8 1
+
+   \                                 In section .bss, align 4
+     35          unsigned int reboot_counter = 0;
+   \                     reboot_counter:
+   \   00000000                      DS8 4
+
+   \                                 In section .bss, align 1
+     36          unsigned char no_reboot=0;
+   \                     no_reboot:
+   \   00000000                      DS8 1
+
+   \                                 In section .bss, align 4
+     37          uip_ipaddr_t trgetaddr;
+   \                     trgetaddr:
+   \   00000000                      DS8 4
+
+   \                                 In section .bss, align 1
+     38          unsigned char server_visible = 0;
+   \                     server_visible:
+   \   00000000                      DS8 1
+     39          //******************************************************************************
+     40          #define ON 1
+     41          #define OFF 0
+     42          //-------------------------------------------------------------------------------
+
+   \                                 In section .text, align 4, keep-with-next
+     43          void debug_out(char *buf)
+     44          {
+   \                     debug_out:
+   \   00000000   10402DE9           PUSH     {R4,LR}
+   \   00000004   0040B0E1           MOVS     R4,R0
+     45          	if ((autorization == 2)&&(DEBUG_TELNET))
+   \   00000008   2C009FE5           LDR      R0,??debug_out_0  ;; autorization
+   \   0000000C   0000D0E5           LDRB     R0,[R0, #+0]
+   \   00000010   020050E3           CMP      R0,#+2
+   \   00000014   0600001A           BNE      ??debug_out_1
+   \   00000018   20009FE5           LDR      R0,??debug_out_0+0x4  ;; DEBUG_TELNET
+   \   0000001C   0000D0E5           LDRB     R0,[R0, #+0]
+   \   00000020   000050E3           CMP      R0,#+0
+   \   00000024   0200000A           BEQ      ??debug_out_1
+     46          	{
+     47          		shell_output("DEBUG:",buf);
+   \   00000028   0410B0E1           MOVS     R1,R4
+   \   0000002C   10009FE5           LDR      R0,??debug_out_0+0x8  ;; `?<Constant "DEBUG:">`
+   \   00000030   ........           BL       shell_output
+     48          	}
+     49          	//else uart0_puts(buf);
+     50          }
+   \                     ??debug_out_1:
+   \   00000034   1040BDE8           POP      {R4,LR}
+   \   00000038   1EFF2FE1           BX       LR               ;; return
+   \                     ??debug_out_0:
+   \   0000003C   ........           DC32     autorization
+   \   00000040   ........           DC32     DEBUG_TELNET
+   \   00000044   ........           DC32     `?<Constant "DEBUG:">`
+     51          //------------------------------------------------------------------------------
+
+   \                                 In section .text, align 4, keep-with-next
+     52          static inline void hal_WDR(void) // сброс сторожевого таймера
+     53          {
+     54          	*AT91C_WDTC_WDCR = 0xA5000001;
+   \                     hal_WDR:
+   \   00000000   BF00E0E3           MVN      R0,#+191
+   \   00000004   800FC0E3           BIC      R0,R0,#0x200
+   \   00000008   0110A0E3           MOV      R1,#+1
+   \   0000000C   A51481E3           ORR      R1,R1,#0xA5000000
+   \   00000010   001080E5           STR      R1,[R0, #+0]
+     55          }
+   \   00000014   1EFF2FE1           BX       LR               ;; return
+     56          //-------------------------------------------------------------------------------
+
+   \                                 In section .text, align 4, keep-with-next
+     57          void Led (char stat) // управление светодиодом
+     58          {
+     59          	if (stat == 0) {AT91C_BASE_PIOA->PIO_CODR = Led1;}
+   \                     Led:
+   \   00000000   FF0010E2           ANDS     R0,R0,#0xFF      ;; Zero extend
+   \   00000004   000050E3           CMP      R0,#+0
+   \   00000008   0300001A           BNE      ??Led_0
+   \   0000000C   CB10E0E3           MVN      R1,#+203
+   \   00000010   B01EC1E3           BIC      R1,R1,#0xB00
+   \   00000014   0120A0E3           MOV      R2,#+1
+   \   00000018   002081E5           STR      R2,[R1, #+0]
+     60          	if (stat == 1) {AT91C_BASE_PIOA->PIO_SODR = Led1;}
+   \                     ??Led_0:
+   \   0000001C   FF0010E2           ANDS     R0,R0,#0xFF      ;; Zero extend
+   \   00000020   010050E3           CMP      R0,#+1
+   \   00000024   0300001A           BNE      ??Led_1
+   \   00000028   CF10E0E3           MVN      R1,#+207
+   \   0000002C   B01EC1E3           BIC      R1,R1,#0xB00
+   \   00000030   0120A0E3           MOV      R2,#+1
+   \   00000034   002081E5           STR      R2,[R1, #+0]
+     61          }
+   \                     ??Led_1:
+   \   00000038   1EFF2FE1           BX       LR               ;; return
+     62          //-------------------------------------------------------------------------------
+
+   \                                 In section .text, align 4, keep-with-next
+     63          void delay_ms( unsigned short delay) // задержка
+     64          {
+   \                     delay_ms:
+   \   00000000   F8402DE9           PUSH     {R3-R7,LR}
+   \   00000004   0040B0E1           MOVS     R4,R0
+     65          	unsigned short count,a;
+     66          	unsigned long count2;
+     67          
+     68          	for (count = 0; count < delay; count++) {
+   \   00000008   0000A0E3           MOV      R0,#+0
+   \   0000000C   0050B0E1           MOVS     R5,R0
+   \                     ??delay_ms_0:
+   \   00000010   0558A0E1           MOV      R5,R5, LSL #+16
+   \   00000014   2558B0E1           MOVS     R5,R5, LSR #+16
+   \   00000018   0448A0E1           MOV      R4,R4, LSL #+16
+   \   0000001C   2448B0E1           MOVS     R4,R4, LSR #+16
+   \   00000020   040055E1           CMP      R5,R4
+   \   00000024   0C00002A           BCS      ??delay_ms_1
+     69          		for (count2 = 0;count2 <= 1850 ; count2++) {
+   \   00000028   0000A0E3           MOV      R0,#+0
+   \   0000002C   0070B0E1           MOVS     R7,R0
+   \                     ??delay_ms_2:
+   \   00000030   3B00A0E3           MOV      R0,#+59
+   \   00000034   700E80E3           ORR      R0,R0,#0x700
+   \   00000038   000057E1           CMP      R7,R0
+   \   0000003C   0400002A           BCS      ??delay_ms_3
+     70          			a = 1;
+   \   00000040   0100A0E3           MOV      R0,#+1
+   \   00000044   0060B0E1           MOVS     R6,R0
+     71          			a = a;
+     72          			WDT_RES();
+   \   00000048   ........           BL       hal_WDR
+     73          		}
+   \   0000004C   017097E2           ADDS     R7,R7,#+1
+   \   00000050   F6FFFFEA           B        ??delay_ms_2
+     74          	}
+   \                     ??delay_ms_3:
+   \   00000054   015095E2           ADDS     R5,R5,#+1
+   \   00000058   ECFFFFEA           B        ??delay_ms_0
+     75          }
+   \                     ??delay_ms_1:
+   \   0000005C   F140BDE8           POP      {R0,R4-R7,LR}
+   \   00000060   1EFF2FE1           BX       LR               ;; return
+     76          //-------------------------------------------------------------------------------
+
+   \                                 In section .text, align 4, keep-with-next
+     77          void reset_switch (void) // сброс оборудования
+     78          {
+   \                     reset_switch:
+   \   00000000   00502DE9           PUSH     {R12,LR}
+     79          	AT91C_BASE_PIOA->PIO_SODR = (REL);
+   \   00000004   CF00E0E3           MVN      R0,#+207
+   \   00000008   B00EC0E3           BIC      R0,R0,#0xB00
+   \   0000000C   0210A0E3           MOV      R1,#+2
+   \   00000010   001080E5           STR      R1,[R0, #+0]
+     80          	delay_ms(SET->time*1000);          // используется время из настройки
+   \   00000014   ........           LDR      R0,??DataTable36  ;; setting_buf + 42
+   \   00000018   B000D0E1           LDRH     R0,[R0, #+0]
+   \   0000001C   FA1FA0E3           MOV      R1,#+1000
+   \   00000020   910010E0           MULS     R0,R1,R0
+   \   00000024   0008A0E1           MOV      R0,R0, LSL #+16
+   \   00000028   2008B0E1           MOVS     R0,R0, LSR #+16
+   \   0000002C   ........           BL       delay_ms
+     81          	AT91C_BASE_PIOA->PIO_CODR = (REL);
+   \   00000030   CB00E0E3           MVN      R0,#+203
+   \   00000034   B00EC0E3           BIC      R0,R0,#0xB00
+   \   00000038   0210A0E3           MOV      R1,#+2
+   \   0000003C   001080E5           STR      R1,[R0, #+0]
+     82          }
+   \   00000040   0140BDE8           POP      {R0,LR}
+   \   00000044   1EFF2FE1           BX       LR               ;; return
+     83          ///----------------------------------------------------------------------
+
+   \                                 In section .text, align 4, keep-with-next
+     84          void timer0_c_irq_handler(void) // Секундный таймер
+     85          {
+     86          	static int time = 115;
+     87          	AT91PS_TC TC_pt = AT91C_BASE_TC0;
+   \                     timer0_c_irq_handler:
+   \   00000000   FF24A0E3           MOV      R2,#-16777216
+   \   00000004   FA2882E3           ORR      R2,R2,#0xFA0000
+   \   00000008   0200B0E1           MOVS     R0,R2
+     88          	unsigned int dummy;
+     89          	dummy = TC_pt->TC_SR;
+   \   0000000C   202090E5           LDR      R2,[R0, #+32]
+   \   00000010   0210B0E1           MOVS     R1,R2
+     90          	dummy = dummy;
+     91          	if (--time == 0)
+   \   00000014   38209FE5           LDR      R2,??timer0_c_irq_handler_0  ;; ??time
+   \   00000018   002092E5           LDR      R2,[R2, #+0]
+   \   0000001C   012052E2           SUBS     R2,R2,#+1
+   \   00000020   2C309FE5           LDR      R3,??timer0_c_irq_handler_0  ;; ??time
+   \   00000024   002083E5           STR      R2,[R3, #+0]
+   \   00000028   000052E3           CMP      R2,#+0
+   \   0000002C   0700001A           BNE      ??timer0_c_irq_handler_1
+     92          	{
+     93          		// 1 Sekunden Timer
+     94          		time=115;
+   \   00000030   1C209FE5           LDR      R2,??timer0_c_irq_handler_0  ;; ??time
+   \   00000034   7330A0E3           MOV      R3,#+115
+   \   00000038   003082E5           STR      R3,[R2, #+0]
+     95          		sec_counter++;
+   \   0000003C   ........           LDR      R2,??DataTable3  ;; sec_counter
+   \   00000040   002092E5           LDR      R2,[R2, #+0]
+   \   00000044   012092E2           ADDS     R2,R2,#+1
+   \   00000048   ........           LDR      R3,??DataTable3  ;; sec_counter
+   \   0000004C   002083E5           STR      R2,[R3, #+0]
+     96          	}
+     97          }
+   \                     ??timer0_c_irq_handler_1:
+   \   00000050   1EFF2FE1           BX       LR               ;; return
+   \                     ??timer0_c_irq_handler_0:
+   \   00000054   ........           DC32     ??time
+
+   \                                 In section .data, align 4
+   \                     ??time:
+   \   00000000   73000000           DC32 115
+     98          //---------------------------------------------------------------------
+
+   \                                 In section .text, align 4, keep-with-next
+     99          void clock_init(void)
+    100          {
+    101          	unsigned int dummy;
+    102          	__disable_interrupt();
+   \                     clock_init:
+   \   00000000   00100FE1           MRS      R1,CPSR
+   \   00000004   C01081E3           ORR      R1,R1,#0xC0
+   \   00000008   01F021E1           MSR      CPSR_c,R1
+    103          	AT91C_BASE_AIC->AIC_IDCR = 1 << AT91C_ID_TC0 ;
+   \   0000000C   DB10E0E3           MVN      R1,#+219
+   \   00000010   E01EC1E3           BIC      R1,R1,#0xE00
+   \   00000014   402DA0E3           MOV      R2,#+4096
+   \   00000018   002081E5           STR      R2,[R1, #+0]
+    104          	AT91C_BASE_TC0->TC_IDR = AT91C_TC_CPCS;
+   \   0000001C   D4109FE5           LDR      R1,??clock_init_0  ;; 0xfffa0028
+   \   00000020   1020A0E3           MOV      R2,#+16
+   \   00000024   002081E5           STR      R2,[R1, #+0]
+    105          	AT91C_BASE_PMC->PMC_PCER = ( 1 <<  AT91C_ID_TC0 ) ;
+   \   00000028   EF10E0E3           MVN      R1,#+239
+   \   0000002C   C01FC1E3           BIC      R1,R1,#0x300
+   \   00000030   402DA0E3           MOV      R2,#+4096
+   \   00000034   002081E5           STR      R2,[R1, #+0]
+    106          	AT91C_BASE_TC0->TC_CCR = AT91C_TC_CLKDIS ;
+   \   00000038   FF14A0E3           MOV      R1,#-16777216
+   \   0000003C   FA1881E3           ORR      R1,R1,#0xFA0000
+   \   00000040   0220A0E3           MOV      R2,#+2
+   \   00000044   002081E5           STR      R2,[R1, #+0]
+    107          	AT91C_BASE_TC0->TC_IDR = 0xFFFFFFFF ;
+   \   00000048   A8109FE5           LDR      R1,??clock_init_0  ;; 0xfffa0028
+   \   0000004C   0020E0E3           MVN      R2,#+0
+   \   00000050   002081E5           STR      R2,[R1, #+0]
+    108          	dummy = AT91C_BASE_TC0->TC_SR;
+   \   00000054   A0109FE5           LDR      R1,??clock_init_0+0x4  ;; 0xfffa0020
+   \   00000058   001091E5           LDR      R1,[R1, #+0]
+   \   0000005C   0100B0E1           MOVS     R0,R1
+    109          	dummy = dummy;
+    110          	AT91C_BASE_TC0->TC_CMR = 0x01 ;
+   \   00000060   98109FE5           LDR      R1,??clock_init_0+0x8  ;; 0xfffa0004
+   \   00000064   0120A0E3           MOV      R2,#+1
+   \   00000068   002081E5           STR      R2,[R1, #+0]
+    111          	AT91C_BASE_TC0->TC_CCR = AT91C_TC_CLKEN ;
+   \   0000006C   FF14A0E3           MOV      R1,#-16777216
+   \   00000070   FA1881E3           ORR      R1,R1,#0xFA0000
+   \   00000074   0120A0E3           MOV      R2,#+1
+   \   00000078   002081E5           STR      R2,[R1, #+0]
+    112          	AT91C_BASE_AIC->AIC_IDCR =  0x1 << AT91C_ID_TC0 ;
+   \   0000007C   DB10E0E3           MVN      R1,#+219
+   \   00000080   E01EC1E3           BIC      R1,R1,#0xE00
+   \   00000084   402DA0E3           MOV      R2,#+4096
+   \   00000088   002081E5           STR      R2,[R1, #+0]
+    113          	AT91C_BASE_AIC->AIC_SVR[AT91C_ID_TC0] = (unsigned int) timer0_c_irq_handler ;
+   \   0000008C   4F10E0E3           MVN      R1,#+79
+   \   00000090   F01EC1E3           BIC      R1,R1,#0xF00
+   \   00000094   68209FE5           LDR      R2,??clock_init_0+0xC  ;; timer0_c_irq_handler
+   \   00000098   002081E5           STR      R2,[R1, #+0]
+    114          	AT91C_BASE_AIC->AIC_SMR[AT91C_ID_TC0] = AT91C_AIC_SRCTYPE_INT_HIGH_LEVEL | 1  ;
+   \   0000009C   CF10E0E3           MVN      R1,#+207
+   \   000000A0   F01EC1E3           BIC      R1,R1,#0xF00
+   \   000000A4   0120A0E3           MOV      R2,#+1
+   \   000000A8   002081E5           STR      R2,[R1, #+0]
+    115          	AT91C_BASE_AIC->AIC_ICCR =  0x1 << AT91C_ID_TC0 ;
+   \   000000AC   D710E0E3           MVN      R1,#+215
+   \   000000B0   E01EC1E3           BIC      R1,R1,#0xE00
+   \   000000B4   402DA0E3           MOV      R2,#+4096
+   \   000000B8   002081E5           STR      R2,[R1, #+0]
+    116          	AT91C_BASE_TC0->TC_IER = AT91C_TC_CPCS;  //  IRQ enable CPC
+   \   000000BC   44109FE5           LDR      R1,??clock_init_0+0x10  ;; 0xfffa0024
+   \   000000C0   1020A0E3           MOV      R2,#+16
+   \   000000C4   002081E5           STR      R2,[R1, #+0]
+    117          	AT91C_BASE_AIC->AIC_IECR = 0x1 << AT91C_ID_TC0;
+   \   000000C8   DF10E0E3           MVN      R1,#+223
+   \   000000CC   E01EC1E3           BIC      R1,R1,#0xE00
+   \   000000D0   402DA0E3           MOV      R2,#+4096
+   \   000000D4   002081E5           STR      R2,[R1, #+0]
+    118          	AT91C_BASE_TC0->TC_CCR = AT91C_TC_SWTRG ;
+   \   000000D8   FF14A0E3           MOV      R1,#-16777216
+   \   000000DC   FA1881E3           ORR      R1,R1,#0xFA0000
+   \   000000E0   0420A0E3           MOV      R2,#+4
+   \   000000E4   002081E5           STR      R2,[R1, #+0]
+    119          	__enable_interrupt();
+   \   000000E8   00100FE1           MRS      R1,CPSR
+   \   000000EC   C010C1E3           BIC      R1,R1,#0xC0
+   \   000000F0   01F021E1           MSR      CPSR_c,R1
+    120          }
+   \   000000F4   1EFF2FE1           BX       LR               ;; return
+   \                     ??clock_init_0:
+   \   000000F8   2800FAFF           DC32     0xfffa0028
+   \   000000FC   2000FAFF           DC32     0xfffa0020
+   \   00000100   0400FAFF           DC32     0xfffa0004
+   \   00000104   ........           DC32     timer0_c_irq_handler
+   \   00000108   2400FAFF           DC32     0xfffa0024
+    121          //--------------------------------------------------------------------------------
+
+   \                                 In section .text, align 4, keep-with-next
+    122          clock_time_t clock_time(void) // функция системного времени
+    123          {
+    124          	return(sec_counter);
+   \                     clock_time:
+   \   00000000   ........           LDR      R0,??DataTable3  ;; sec_counter
+   \   00000004   000090E5           LDR      R0,[R0, #+0]
+   \   00000008   1EFF2FE1           BX       LR               ;; return
+    125          }
+
+   \                                 In section .text, align 4, keep-with-next
+    126          void uip_log(char *text) // системный лог
+    127          {
+    128          	//uart_puts(text);
+    129          }
+   \                     uip_log:
+   \   00000000   1EFF2FE1           BX       LR               ;; return
+    130          //--------------------------------------------------------------------------------
+
+   \                                 In section .text, align 4, keep-with-next
+    131          void wdt_init(void) // настройка сторожевого пса
+    132          {
+    133            AT91C_BASE_WDTC->WDTC_WDMR = 0x3FF | (0x3FF << 16) | AT91C_WDTC_WDRSTEN | AT91C_WDTC_WDDBGHLT | AT91C_WDTC_WDIDLEHLT;
+   \                     wdt_init:
+   \   00000000   BB00E0E3           MVN      R0,#+187
+   \   00000004   800FC0E3           BIC      R0,R0,#0x200
+   \   00000008   CC14E0E3           MVN      R1,#-872415232
+   \   0000000C   DC1CC1E3           BIC      R1,R1,#0xDC00
+   \   00000010   001080E5           STR      R1,[R0, #+0]
+    134          }
+   \   00000014   1EFF2FE1           BX       LR               ;; return
+    135          //---------------------------------------------------------------------------------
+
+   \                                 In section .text, align 4, keep-with-next
+    136          void config_mcu (void) // настройка портов процессора
+    137          {
+    138          	AT91C_BASE_PMC->PMC_PCER = ( 1 << AT91C_ID_PIOA );
+   \                     config_mcu:
+   \   00000000   EF00E0E3           MVN      R0,#+239
+   \   00000004   C00FC0E3           BIC      R0,R0,#0x300
+   \   00000008   0410A0E3           MOV      R1,#+4
+   \   0000000C   001080E5           STR      R1,[R0, #+0]
+    139          #ifdef SWS01
+    140                  AT91C_BASE_PIOA->PIO_PER = (D0|D1|D2|D3|D4|D5|D6|D7|RD|WR|ALE|Led1|REL|RES);
+    141          #else
+    142          	AT91C_BASE_PIOA->PIO_PER = (D0|D1|D2|D3|D4|D5|D6|D7|RD|WR|ALE|Led1|REL|RES|SWDEF);
+   \   00000010   FF00E0E3           MVN      R0,#+255
+   \   00000014   B00EC0E3           BIC      R0,R0,#0xB00
+   \   00000018   48109FE5           LDR      R1,??config_mcu_0  ;; 0x3ff88b
+   \   0000001C   001080E5           STR      R1,[R0, #+0]
+    143                  AT91C_BASE_PIOA->PIO_ODR = SWDEF;
+   \   00000020   EB00E0E3           MVN      R0,#+235
+   \   00000024   B00EC0E3           BIC      R0,R0,#0xB00
+   \   00000028   0810A0E3           MOV      R1,#+8
+   \   0000002C   001080E5           STR      R1,[R0, #+0]
+    144          #endif
+    145          	AT91C_BASE_PIOA->PIO_OER = (D0|D1|D2|D3|D4|D5|D6|D7|RD|WR|ALE|Led1|REL|RES);
+   \   00000030   EF00E0E3           MVN      R0,#+239
+   \   00000034   B00EC0E3           BIC      R0,R0,#0xB00
+   \   00000038   2C109FE5           LDR      R1,??config_mcu_0+0x4  ;; 0x3ff883
+   \   0000003C   001080E5           STR      R1,[R0, #+0]
+    146          	
+    147              AT91C_BASE_PIOA->PIO_SODR = (RD|WR|RES);
+   \   00000040   CF00E0E3           MVN      R0,#+207
+   \   00000044   B00EC0E3           BIC      R0,R0,#0xB00
+   \   00000048   8019A0E3           MOV      R1,#+2097152
+   \   0000004C   601D81E3           ORR      R1,R1,#0x1800
+   \   00000050   001080E5           STR      R1,[R0, #+0]
+    148          	AT91C_BASE_PIOA->PIO_CODR = (ALE|Led1|REL);
+   \   00000054   CB00E0E3           MVN      R0,#+203
+   \   00000058   B00EC0E3           BIC      R0,R0,#0xB00
+   \   0000005C   8310A0E3           MOV      R1,#+131
+   \   00000060   001080E5           STR      R1,[R0, #+0]
+    149          }
+   \   00000064   1EFF2FE1           BX       LR               ;; return
+   \                     ??config_mcu_0:
+   \   00000068   8BF83F00           DC32     0x3ff88b
+   \   0000006C   83F83F00           DC32     0x3ff883
+    150          //------------------------------------------------------------------------------
+
+   \                                 In section .text, align 4, keep-with-next
+    151          void read_device_setting (void) // Read device setting
+    152          {
+    153              __disable_interrupt();
+   \                     read_device_setting:
+   \   00000000   00200FE1           MRS      R2,CPSR
+   \   00000004   C02082E3           ORR      R2,R2,#0xC0
+   \   00000008   02F021E1           MSR      CPSR_c,R2
+    154          	unsigned char i=0,m=0;
+   \   0000000C   0020A0E3           MOV      R2,#+0
+   \   00000010   0200B0E1           MOVS     R0,R2
+   \   00000014   0020A0E3           MOV      R2,#+0
+   \   00000018   0210B0E1           MOVS     R1,R2
+    155          	for (i=0;i<(sizeof(setting_buf)-1);i+=4) 
+   \   0000001C   0020A0E3           MOV      R2,#+0
+   \   00000020   0200B0E1           MOVS     R0,R2
+   \                     ??read_device_setting_0:
+   \   00000024   FF0010E2           ANDS     R0,R0,#0xFF      ;; Zero extend
+   \   00000028   340050E3           CMP      R0,#+52
+   \   0000002C   3000002A           BCS      ??read_device_setting_1
+    156          	{
+    157          		setting_buf[i+3] = ( *((unsigned long*)ADRESS_FLASH_SETING+m))>>24;
+   \   00000030   0120B0E1           MOVS     R2,R1
+   \   00000034   FF2012E2           ANDS     R2,R2,#0xFF      ;; Zero extend
+   \   00000038   0430A0E3           MOV      R3,#+4
+   \   0000003C   930212E0           MULS     R2,R3,R2
+   \   00000040   7F2C92E2           ADDS     R2,R2,#+32512
+   \   00000044   002092E5           LDR      R2,[R2, #+0]
+   \   00000048   222CB0E1           LSRS     R2,R2,#+24
+   \   0000004C   0030B0E1           MOVS     R3,R0
+   \   00000050   FF3013E2           ANDS     R3,R3,#0xFF      ;; Zero extend
+   \   00000054   ........           LDR      R12,??DataTable39  ;; setting_buf
+   \   00000058   0C3093E0           ADDS     R3,R3,R12
+   \   0000005C   0320C3E5           STRB     R2,[R3, #+3]
+    158          		setting_buf[i+2] = ( *((unsigned long*)ADRESS_FLASH_SETING+m))>>16;
+   \   00000060   0120B0E1           MOVS     R2,R1
+   \   00000064   FF2012E2           ANDS     R2,R2,#0xFF      ;; Zero extend
+   \   00000068   0430A0E3           MOV      R3,#+4
+   \   0000006C   930212E0           MULS     R2,R3,R2
+   \   00000070   7F2C92E2           ADDS     R2,R2,#+32512
+   \   00000074   002092E5           LDR      R2,[R2, #+0]
+   \   00000078   2228B0E1           LSRS     R2,R2,#+16
+   \   0000007C   0030B0E1           MOVS     R3,R0
+   \   00000080   FF3013E2           ANDS     R3,R3,#0xFF      ;; Zero extend
+   \   00000084   ........           LDR      R12,??DataTable39  ;; setting_buf
+   \   00000088   0C3093E0           ADDS     R3,R3,R12
+   \   0000008C   0220C3E5           STRB     R2,[R3, #+2]
+    159          		setting_buf[i+1] = ( *((unsigned long*)ADRESS_FLASH_SETING+m))>>8;
+   \   00000090   0120B0E1           MOVS     R2,R1
+   \   00000094   FF2012E2           ANDS     R2,R2,#0xFF      ;; Zero extend
+   \   00000098   0430A0E3           MOV      R3,#+4
+   \   0000009C   930212E0           MULS     R2,R3,R2
+   \   000000A0   7F2C92E2           ADDS     R2,R2,#+32512
+   \   000000A4   002092E5           LDR      R2,[R2, #+0]
+   \   000000A8   2224B0E1           LSRS     R2,R2,#+8
+   \   000000AC   0030B0E1           MOVS     R3,R0
+   \   000000B0   FF3013E2           ANDS     R3,R3,#0xFF      ;; Zero extend
+   \   000000B4   ........           LDR      R12,??DataTable39  ;; setting_buf
+   \   000000B8   0C3093E0           ADDS     R3,R3,R12
+   \   000000BC   0120C3E5           STRB     R2,[R3, #+1]
+    160          		setting_buf[i+0] = ( *((unsigned long*)ADRESS_FLASH_SETING+m))>>0;
+   \   000000C0   0120B0E1           MOVS     R2,R1
+   \   000000C4   FF2012E2           ANDS     R2,R2,#0xFF      ;; Zero extend
+   \   000000C8   0430A0E3           MOV      R3,#+4
+   \   000000CC   930212E0           MULS     R2,R3,R2
+   \   000000D0   7F2C92E2           ADDS     R2,R2,#+32512
+   \   000000D4   002092E5           LDR      R2,[R2, #+0]
+   \   000000D8   0030B0E1           MOVS     R3,R0
+   \   000000DC   FF3013E2           ANDS     R3,R3,#0xFF      ;; Zero extend
+   \   000000E0   ........           LDR      R12,??DataTable39  ;; setting_buf
+   \   000000E4   0C20C3E7           STRB     R2,[R3, +R12]
+    161                          m++;
+   \   000000E8   011091E2           ADDS     R1,R1,#+1
+    162          	}
+   \   000000EC   040090E2           ADDS     R0,R0,#+4
+   \   000000F0   CBFFFFEA           B        ??read_device_setting_0
+    163              __enable_interrupt();
+   \                     ??read_device_setting_1:
+   \   000000F4   00200FE1           MRS      R2,CPSR
+   \   000000F8   C020C2E3           BIC      R2,R2,#0xC0
+   \   000000FC   02F021E1           MSR      CPSR_c,R2
+    164          }
+   \   00000100   1EFF2FE1           BX       LR               ;; return
+    165          //-----------------------------------------------------------------------------
+
+   \                                 In section .text, align 4, keep-with-next
+    166          void default_setting_set (void) // установка завоцких установок
+    167          {
+   \                     default_setting_set:
+   \   00000000   08D04DE2           SUB      SP,SP,#+8
+    168          	uip_ipaddr_t tempaddr;
+    169          	// default login
+    170              SET->login[0] = 'a';
+   \   00000004   ........           LDR      R0,??DataTable39  ;; setting_buf
+   \   00000008   6110A0E3           MOV      R1,#+97
+   \   0000000C   0010C0E5           STRB     R1,[R0, #+0]
+    171              SET->login[1] = 'd';
+   \   00000010   70019FE5           LDR      R0,??default_setting_set_0  ;; setting_buf + 1
+   \   00000014   6410A0E3           MOV      R1,#+100
+   \   00000018   0010C0E5           STRB     R1,[R0, #+0]
+    172          	SET->login[2] = 'm';
+   \   0000001C   68019FE5           LDR      R0,??default_setting_set_0+0x4  ;; setting_buf + 2
+   \   00000020   6D10A0E3           MOV      R1,#+109
+   \   00000024   0010C0E5           STRB     R1,[R0, #+0]
+    173          	SET->login[3] = 'i';
+   \   00000028   60019FE5           LDR      R0,??default_setting_set_0+0x8  ;; setting_buf + 3
+   \   0000002C   6910A0E3           MOV      R1,#+105
+   \   00000030   0010C0E5           STRB     R1,[R0, #+0]
+    174          	SET->login[4] = 'n';
+   \   00000034   58019FE5           LDR      R0,??default_setting_set_0+0xC  ;; setting_buf + 4
+   \   00000038   6E10A0E3           MOV      R1,#+110
+   \   0000003C   0010C0E5           STRB     R1,[R0, #+0]
+    175          	SET->login[5] = '\0';
+   \   00000040   50019FE5           LDR      R0,??default_setting_set_0+0x10  ;; setting_buf + 5
+   \   00000044   0010A0E3           MOV      R1,#+0
+   \   00000048   0010C0E5           STRB     R1,[R0, #+0]
+    176          	// default password
+    177          	SET->password[0] = '5';
+   \   0000004C   48019FE5           LDR      R0,??default_setting_set_0+0x14  ;; setting_buf + 10
+   \   00000050   3510A0E3           MOV      R1,#+53
+   \   00000054   0010C0E5           STRB     R1,[R0, #+0]
+    178              SET->password[1] = '4';
+   \   00000058   40019FE5           LDR      R0,??default_setting_set_0+0x18  ;; setting_buf + 11
+   \   0000005C   3410A0E3           MOV      R1,#+52
+   \   00000060   0010C0E5           STRB     R1,[R0, #+0]
+    179          	SET->password[2] = '3';
+   \   00000064   38019FE5           LDR      R0,??default_setting_set_0+0x1C  ;; setting_buf + 12
+   \   00000068   3310A0E3           MOV      R1,#+51
+   \   0000006C   0010C0E5           STRB     R1,[R0, #+0]
+    180          	SET->password[3] = '2';
+   \   00000070   30019FE5           LDR      R0,??default_setting_set_0+0x20  ;; setting_buf + 13
+   \   00000074   3210A0E3           MOV      R1,#+50
+   \   00000078   0010C0E5           STRB     R1,[R0, #+0]
+    181          	SET->password[4] = '1';
+   \   0000007C   28019FE5           LDR      R0,??default_setting_set_0+0x24  ;; setting_buf + 14
+   \   00000080   3110A0E3           MOV      R1,#+49
+   \   00000084   0010C0E5           STRB     R1,[R0, #+0]
+    182          	SET->password[5] = '\0';
+   \   00000088   20019FE5           LDR      R0,??default_setting_set_0+0x28  ;; setting_buf + 15
+   \   0000008C   0010A0E3           MOV      R1,#+0
+   \   00000090   0010C0E5           STRB     R1,[R0, #+0]
+    183          	// Set default ip adres
+    184          	uip_ipaddr(tempaddr, 192,168,0,254);
+   \   00000094   C010A0E3           MOV      R1,#+192
+   \   00000098   A81C81E3           ORR      R1,R1,#0xA800
+   \   0000009C   B010CDE1           STRH     R1,[SP, #+0]
+   \   000000A0   FE1CA0E3           MOV      R1,#+65024
+   \   000000A4   B210CDE1           STRH     R1,[SP, #+2]
+    185              SET->IPDev[0] = tempaddr[0];
+   \   000000A8   04019FE5           LDR      R0,??default_setting_set_0+0x2C  ;; setting_buf + 20
+   \   000000AC   B010DDE1           LDRH     R1,[SP, #+0]
+   \   000000B0   B010C0E1           STRH     R1,[R0, #+0]
+    186          	SET->IPDev[1] = tempaddr[1];
+   \   000000B4   FC009FE5           LDR      R0,??default_setting_set_0+0x30  ;; setting_buf + 22
+   \   000000B8   B210DDE1           LDRH     R1,[SP, #+2]
+   \   000000BC   B010C0E1           STRH     R1,[R0, #+0]
+    187          	// Set default NetMask adres
+    188          	uip_ipaddr(tempaddr, 255,255,255,0);
+   \   000000C0   FF10A0E3           MOV      R1,#+255
+   \   000000C4   FF1C81E3           ORR      R1,R1,#0xFF00
+   \   000000C8   B010CDE1           STRH     R1,[SP, #+0]
+   \   000000CC   FF10A0E3           MOV      R1,#+255
+   \   000000D0   B210CDE1           STRH     R1,[SP, #+2]
+    189              SET->NetMask[0] = tempaddr[0];
+   \   000000D4   E0009FE5           LDR      R0,??default_setting_set_0+0x34  ;; setting_buf + 24
+   \   000000D8   B010DDE1           LDRH     R1,[SP, #+0]
+   \   000000DC   B010C0E1           STRH     R1,[R0, #+0]
+    190          	SET->NetMask[1] = tempaddr[1];
+   \   000000E0   D8009FE5           LDR      R0,??default_setting_set_0+0x38  ;; setting_buf + 26
+   \   000000E4   B210DDE1           LDRH     R1,[SP, #+2]
+   \   000000E8   B010C0E1           STRH     R1,[R0, #+0]
+    191              // Set default Geteway adres
+    192          	uip_ipaddr(tempaddr, 192,168,0,1);
+   \   000000EC   C010A0E3           MOV      R1,#+192
+   \   000000F0   A81C81E3           ORR      R1,R1,#0xA800
+   \   000000F4   B010CDE1           STRH     R1,[SP, #+0]
+   \   000000F8   401FA0E3           MOV      R1,#+256
+   \   000000FC   B210CDE1           STRH     R1,[SP, #+2]
+    193              SET->Geteway[0] = tempaddr[0];
+   \   00000100   BC009FE5           LDR      R0,??default_setting_set_0+0x3C  ;; setting_buf + 28
+   \   00000104   B010DDE1           LDRH     R1,[SP, #+0]
+   \   00000108   B010C0E1           STRH     R1,[R0, #+0]
+    194          	SET->Geteway[1] = tempaddr[1];
+   \   0000010C   B4009FE5           LDR      R0,??default_setting_set_0+0x40  ;; setting_buf + 30
+   \   00000110   B210DDE1           LDRH     R1,[SP, #+2]
+   \   00000114   B010C0E1           STRH     R1,[R0, #+0]
+    195          	// Set default ip adres
+    196          	uip_ipaddr(tempaddr, 192,168,0,1);
+   \   00000118   C010A0E3           MOV      R1,#+192
+   \   0000011C   A81C81E3           ORR      R1,R1,#0xA800
+   \   00000120   B010CDE1           STRH     R1,[SP, #+0]
+   \   00000124   401FA0E3           MOV      R1,#+256
+   \   00000128   B210CDE1           STRH     R1,[SP, #+2]
+    197              SET->Target[0] = tempaddr[0];
+   \   0000012C   ........           LDR      R0,??DataTable43  ;; setting_buf + 32
+   \   00000130   B010DDE1           LDRH     R1,[SP, #+0]
+   \   00000134   B010C0E1           STRH     R1,[R0, #+0]
+    198          	SET->Target[1] = tempaddr[1];
+   \   00000138   ........           LDR      R0,??DataTable44  ;; setting_buf + 34
+   \   0000013C   B210DDE1           LDRH     R1,[SP, #+2]
+   \   00000140   B010C0E1           STRH     R1,[R0, #+0]
+    199              // Set default period
+    200          	SET->period = 300;        // Период пингования
+   \   00000144   ........           LDR      R0,??DataTable32  ;; setting_buf + 36
+   \   00000148   4B1FA0E3           MOV      R1,#+300
+   \   0000014C   B010C0E1           STRH     R1,[R0, #+0]
+    201          	SET->percent = 10 ;      // процент потерь пакетов
+   \   00000150   ........           LDR      R0,??DataTable23  ;; setting_buf + 40
+   \   00000154   0A10A0E3           MOV      R1,#+10
+   \   00000158   B010C0E1           STRH     R1,[R0, #+0]
+    202              SET->time = 60;          // Time reboot
+   \   0000015C   ........           LDR      R0,??DataTable36  ;; setting_buf + 42
+   \   00000160   3C10A0E3           MOV      R1,#+60
+   \   00000164   B010C0E1           STRH     R1,[R0, #+0]
+    203          	SET->size = 1024;          // Нагрузка пакета длинна пакета
+   \   00000168   ........           LDR      R0,??DataTable45  ;; setting_buf + 44
+   \   0000016C   401EA0E3           MOV      R1,#+1024
+   \   00000170   B010C0E1           STRH     R1,[R0, #+0]
+    204          	SET->count = 10;         // Количество передаваемых пакетов ICMP
+   \   00000174   ........           LDR      R0,??DataTable22  ;; setting_buf + 38
+   \   00000178   0A10A0E3           MOV      R1,#+10
+   \   0000017C   B010C0E1           STRH     R1,[R0, #+0]
+    205          //	write_device_setting();
+    206          }
+   \   00000180   08D08DE2           ADD      SP,SP,#+8        ;; stack cleaning
+   \   00000184   1EFF2FE1           BX       LR               ;; return
+   \                     ??default_setting_set_0:
+   \   00000188   ........           DC32     setting_buf + 1
+   \   0000018C   ........           DC32     setting_buf + 2
+   \   00000190   ........           DC32     setting_buf + 3
+   \   00000194   ........           DC32     setting_buf + 4
+   \   00000198   ........           DC32     setting_buf + 5
+   \   0000019C   ........           DC32     setting_buf + 10
+   \   000001A0   ........           DC32     setting_buf + 11
+   \   000001A4   ........           DC32     setting_buf + 12
+   \   000001A8   ........           DC32     setting_buf + 13
+   \   000001AC   ........           DC32     setting_buf + 14
+   \   000001B0   ........           DC32     setting_buf + 15
+   \   000001B4   ........           DC32     setting_buf + 20
+   \   000001B8   ........           DC32     setting_buf + 22
+   \   000001BC   ........           DC32     setting_buf + 24
+   \   000001C0   ........           DC32     setting_buf + 26
+   \   000001C4   ........           DC32     setting_buf + 28
+   \   000001C8   ........           DC32     setting_buf + 30
+    207          //------------------------------------------------------------------------------
+    208          //unsigned char reboot (void)// Функция перезагрузки оборудования
+    209          //{
+    210          //	if(timer_expired(&reboot_timer)) // Если прошло время перезагрузки
+    211          //	{
+    212          //		if (!no_reboot)AT91C_BASE_PIOA->PIO_CODR = (REL);  // Включаем оборудование
+    213          //		//if (!no_reboot)AT91C_BASE_PIOA->PIO_SODR = (REL);
+    214          //                return 1;
+    215          //	}
+    216          //	else
+    217          //	{
+    218          //		if (!no_reboot)AT91C_BASE_PIOA->PIO_SODR = (REL); // Врубаем реле и обестачиваем оборудование
+    219          //	       // if (!no_reboot)AT91C_BASE_PIOA->PIO_CODR = (REL);
+    220          //        }
+    221          //	return 0;
+    222          //}
+    223          //------------------------------------------------------------------------------
+
+   \                                 In section .data, align 4
+    224          unsigned int sec_counter_local=9999;
+   \                     sec_counter_local:
+   \   00000000   0F270000           DC32 9999
+    225          //------------------------------------------------------------------------------
+
+   \                                 In section .text, align 4, keep-with-next
+    226          void poll_ping (void)
+    227          {
+   \                     poll_ping:
+   \   00000000   38402DE9           PUSH     {R3-R5,LR}
+    228          
+    229          	static unsigned int count_send_icmp = 0;
+    230          	static unsigned char time_out_ping=0;
+    231          	static unsigned char TOGLE_PING=1;
+    232              static unsigned char no_answer=0;
+    233              static unsigned char Reboot=0;
+    234              //char ascii[128];
+    235              int test;
+    236          //------------------------------------------------- если флаг ребута установлен
+    237              if (Reboot) // Управляем ребутом
+   \   00000004   70029FE5           LDR      R0,??poll_ping_0  ;; ??Reboot
+   \   00000008   0000D0E5           LDRB     R0,[R0, #+0]
+   \   0000000C   000050E3           CMP      R0,#+0
+   \   00000010   1900000A           BEQ      ??poll_ping_1
+    238              {
+    239              	if(timer_expired(&reboot_timer)) // Если прошло время перезагрузки
+   \   00000014   ........           LDR      R0,??DataTable37  ;; reboot_timer
+   \   00000018   ........           BL       timer_expired
+   \   0000001C   000050E3           CMP      R0,#+0
+   \   00000020   0C00000A           BEQ      ??poll_ping_2
+    240              	{
+    241              		if (!no_reboot)AT91C_BASE_PIOA->PIO_CODR = (REL);  // Включаем оборудование
+   \   00000024   ........           LDR      R0,??DataTable35  ;; no_reboot
+   \   00000028   0000D0E5           LDRB     R0,[R0, #+0]
+   \   0000002C   000050E3           CMP      R0,#+0
+   \   00000030   0300001A           BNE      ??poll_ping_3
+   \   00000034   CB00E0E3           MVN      R0,#+203
+   \   00000038   B00EC0E3           BIC      R0,R0,#0xB00
+   \   0000003C   0210A0E3           MOV      R1,#+2
+   \   00000040   001080E5           STR      R1,[R0, #+0]
+    242              		Reboot = 0;
+   \                     ??poll_ping_3:
+   \   00000044   30029FE5           LDR      R0,??poll_ping_0  ;; ??Reboot
+   \   00000048   0010A0E3           MOV      R1,#+0
+   \   0000004C   0010C0E5           STRB     R1,[R0, #+0]
+    243                          WDT_RES();
+   \   00000050   ........           BL       hal_WDR
+   \   00000054   080000EA           B        ??poll_ping_4
+    244              	}
+    245              	else
+    246              	{
+    247              		if (!no_reboot)AT91C_BASE_PIOA->PIO_SODR = (REL); // Врубаем реле и обестачиваем оборудование
+   \                     ??poll_ping_2:
+   \   00000058   ........           LDR      R0,??DataTable35  ;; no_reboot
+   \   0000005C   0000D0E5           LDRB     R0,[R0, #+0]
+   \   00000060   000050E3           CMP      R0,#+0
+   \   00000064   0300001A           BNE      ??poll_ping_5
+   \   00000068   CF00E0E3           MVN      R0,#+207
+   \   0000006C   B00EC0E3           BIC      R0,R0,#0xB00
+   \   00000070   0210A0E3           MOV      R1,#+2
+   \   00000074   001080E5           STR      R1,[R0, #+0]
+    248                          WDT_RES();
+   \                     ??poll_ping_5:
+   \   00000078   ........           BL       hal_WDR
+    249              	}
+    250          
+    251              }
+    252          //------------------------------------------------------------------------------
+    253          
+    254          	if (timer_expired(&sec_timer)) // Заходим сюда раз в секунду ->
+   \                     ??poll_ping_4:
+   \                     ??poll_ping_1:
+   \   0000007C   ........           LDR      R0,??DataTable41  ;; sec_timer
+   \   00000080   ........           BL       timer_expired
+   \   00000084   000050E3           CMP      R0,#+0
+   \   00000088   7900000A           BEQ      ??poll_ping_6
+    255          	{
+    256          		timer_restart(&sec_timer);
+   \   0000008C   ........           LDR      R0,??DataTable41  ;; sec_timer
+   \   00000090   ........           BL       timer_restart
+    257          		sec_counter_local++;
+   \   00000094   E4019FE5           LDR      R0,??poll_ping_0+0x4  ;; sec_counter_local
+   \   00000098   000090E5           LDR      R0,[R0, #+0]
+   \   0000009C   010090E2           ADDS     R0,R0,#+1
+   \   000000A0   D8119FE5           LDR      R1,??poll_ping_0+0x4  ;; sec_counter_local
+   \   000000A4   000081E5           STR      R0,[R1, #+0]
+    258          		// проверяем отосланы ли все ICMP пакеты
+    259          		if (count_send_icmp >= SET->count)
+   \   000000A8   D4019FE5           LDR      R0,??poll_ping_0+0x8  ;; ??count_send_icmp
+   \   000000AC   000090E5           LDR      R0,[R0, #+0]
+   \   000000B0   ........           LDR      R1,??DataTable22  ;; setting_buf + 38
+   \   000000B4   B010D1E1           LDRH     R1,[R1, #+0]
+   \   000000B8   010050E1           CMP      R0,R1
+   \   000000BC   2700003A           BCC      ??poll_ping_7
+    260          		{
+    261          		  test = (int)(((float)SET->count/100)*SET->percent);
+   \   000000C0   ........           LDR      R0,??DataTable22  ;; setting_buf + 38
+   \   000000C4   B000D0E1           LDRH     R0,[R0, #+0]
+   \   000000C8   ........           BL       __aeabi_ui2f
+   \   000000CC   4014A0E3           MOV      R1,#+1073741824
+   \   000000D0   B21781E3           ORR      R1,R1,#0x2C80000
+   \   000000D4   ........           BL       __aeabi_fdiv
+   \   000000D8   0050B0E1           MOVS     R5,R0
+   \   000000DC   ........           LDR      R0,??DataTable23  ;; setting_buf + 40
+   \   000000E0   B000D0E1           LDRH     R0,[R0, #+0]
+   \   000000E4   ........           BL       __aeabi_ui2f
+   \   000000E8   0510B0E1           MOVS     R1,R5
+   \   000000EC   ........           BL       __aeabi_fmul
+   \   000000F0   ........           BL       __aeabi_f2iz
+   \   000000F4   0040B0E1           MOVS     R4,R0
+    262          		  //sprintf(ascii, "count_send_icmp=%d no_answer=%d test=%d",count_send_icmp,no_answer,test);
+    263          		  //debug_out(ascii);
+    264          		  if (no_answer > test )
+   \   000000F8   88019FE5           LDR      R0,??poll_ping_0+0xC  ;; ??no_answer
+   \   000000FC   0000D0E5           LDRB     R0,[R0, #+0]
+   \   00000100   000054E1           CMP      R4,R0
+   \   00000104   090000AA           BGE      ??poll_ping_8
+    265          		  {
+    266          		 	Reboot = 1;
+   \   00000108   6C019FE5           LDR      R0,??poll_ping_0  ;; ??Reboot
+   \   0000010C   0110A0E3           MOV      R1,#+1
+   \   00000110   0010C0E5           STRB     R1,[R0, #+0]
+    267          		 	timer_restart(&reboot_timer);
+   \   00000114   ........           LDR      R0,??DataTable37  ;; reboot_timer
+   \   00000118   ........           BL       timer_restart
+    268          		 	reboot_counter++; // Инкремент счётчика перегрузок
+   \   0000011C   ........           LDR      R0,??DataTable38  ;; reboot_counter
+   \   00000120   000090E5           LDR      R0,[R0, #+0]
+   \   00000124   010090E2           ADDS     R0,R0,#+1
+   \   00000128   ........           LDR      R1,??DataTable38  ;; reboot_counter
+   \   0000012C   000081E5           STR      R0,[R1, #+0]
+    269          		  }
+    270          		  sec_counter_local=0;
+   \                     ??poll_ping_8:
+   \   00000130   48019FE5           LDR      R0,??poll_ping_0+0x4  ;; sec_counter_local
+   \   00000134   0010A0E3           MOV      R1,#+0
+   \   00000138   001080E5           STR      R1,[R0, #+0]
+    271          		  count_send_icmp = 0;
+   \   0000013C   40019FE5           LDR      R0,??poll_ping_0+0x8  ;; ??count_send_icmp
+   \   00000140   0010A0E3           MOV      R1,#+0
+   \   00000144   001080E5           STR      R1,[R0, #+0]
+    272          		  TOGLE_PING=1;
+   \   00000148   3C019FE5           LDR      R0,??poll_ping_0+0x10  ;; ??TOGLE_PING
+   \   0000014C   0110A0E3           MOV      R1,#+1
+   \   00000150   0010C0E5           STRB     R1,[R0, #+0]
+    273          		  no_answer=0;
+   \   00000154   2C019FE5           LDR      R0,??poll_ping_0+0xC  ;; ??no_answer
+   \   00000158   0010A0E3           MOV      R1,#+0
+   \   0000015C   0010C0E5           STRB     R1,[R0, #+0]
+    274          		}
+    275          		//---------------------------------------------------------------------
+    276          		// Проверяем не пришло ли время попинговать
+    277          		if (sec_counter_local > SET->period)
+   \                     ??poll_ping_7:
+   \   00000160   ........           LDR      R0,??DataTable32  ;; setting_buf + 36
+   \   00000164   B000D0E1           LDRH     R0,[R0, #+0]
+   \   00000168   10119FE5           LDR      R1,??poll_ping_0+0x4  ;; sec_counter_local
+   \   0000016C   001091E5           LDR      R1,[R1, #+0]
+   \   00000170   010050E1           CMP      R0,R1
+   \   00000174   3E00002A           BCS      ??poll_ping_9
+    278          		{
+    279          			if (TOGLE_PING)
+   \   00000178   0C019FE5           LDR      R0,??poll_ping_0+0x10  ;; ??TOGLE_PING
+   \   0000017C   0000D0E5           LDRB     R0,[R0, #+0]
+   \   00000180   000050E3           CMP      R0,#+0
+   \   00000184   0600000A           BEQ      ??poll_ping_10
+    280          			{
+    281          				s_uip_send = 1; // Высталяем флаг что хотим попинговать
+   \   00000188   ........           LDR      R0,??DataTable48  ;; s_uip_send
+   \   0000018C   0110A0E3           MOV      R1,#+1
+   \   00000190   0010C0E5           STRB     R1,[R0, #+0]
+    282          				TOGLE_PING = 0; // Сюда больше незаходим
+   \   00000194   F0009FE5           LDR      R0,??poll_ping_0+0x10  ;; ??TOGLE_PING
+   \   00000198   0010A0E3           MOV      R1,#+0
+   \   0000019C   0010C0E5           STRB     R1,[R0, #+0]
+    283          				return;
+   \   000001A0   330000EA           B        ??poll_ping_11
+    284          			}
+    285          
+    286          			if (ping_flag&(1<<0)) // Флаг установлен значит есть ответ
+   \                     ??poll_ping_10:
+   \   000001A4   E4009FE5           LDR      R0,??poll_ping_0+0x14  ;; ping_flag
+   \   000001A8   0000D0E5           LDRB     R0,[R0, #+0]
+   \   000001AC   010010E3           TST      R0,#0x1
+   \   000001B0   1000000A           BEQ      ??poll_ping_12
+    287          			{
+    288          				time_out_ping=0; // Тайм аут пинга 0
+   \   000001B4   D8009FE5           LDR      R0,??poll_ping_0+0x18  ;; ??time_out_ping
+   \   000001B8   0010A0E3           MOV      R1,#+0
+   \   000001BC   0010C0E5           STRB     R1,[R0, #+0]
+    289          				s_uip_send = 1;  // Высталяем флаг что хотим попинговать
+   \   000001C0   ........           LDR      R0,??DataTable48  ;; s_uip_send
+   \   000001C4   0110A0E3           MOV      R1,#+1
+   \   000001C8   0010C0E5           STRB     R1,[R0, #+0]
+    290                          Led(ON);         // Зажигаем светодиод что видим цель
+   \   000001CC   0100A0E3           MOV      R0,#+1
+   \   000001D0   ........           BL       Led
+    291                          server_visible = 1; // Ставим флаг видимости цели
+   \   000001D4   BC009FE5           LDR      R0,??poll_ping_0+0x1C  ;; server_visible
+   \   000001D8   0110A0E3           MOV      R1,#+1
+   \   000001DC   0010C0E5           STRB     R1,[R0, #+0]
+    292                          count_send_icmp++; //Отосланый пакет считать зачотным автар маладец!!!
+   \   000001E0   9C009FE5           LDR      R0,??poll_ping_0+0x8  ;; ??count_send_icmp
+   \   000001E4   000090E5           LDR      R0,[R0, #+0]
+   \   000001E8   010090E2           ADDS     R0,R0,#+1
+   \   000001EC   90109FE5           LDR      R1,??poll_ping_0+0x8  ;; ??count_send_icmp
+   \   000001F0   000081E5           STR      R0,[R1, #+0]
+    293                          return;
+   \   000001F4   1E0000EA           B        ??poll_ping_11
+    294          			}
+    295          			else time_out_ping++; // Инкримент тайм аута пинга
+   \                     ??poll_ping_12:
+   \   000001F8   94009FE5           LDR      R0,??poll_ping_0+0x18  ;; ??time_out_ping
+   \   000001FC   0000D0E5           LDRB     R0,[R0, #+0]
+   \   00000200   010090E2           ADDS     R0,R0,#+1
+   \   00000204   88109FE5           LDR      R1,??poll_ping_0+0x18  ;; ??time_out_ping
+   \   00000208   0000C1E5           STRB     R0,[R1, #+0]
+    296                            
+    297          
+    298          			if (time_out_ping >= 5)
+   \   0000020C   80009FE5           LDR      R0,??poll_ping_0+0x18  ;; ??time_out_ping
+   \   00000210   0000D0E5           LDRB     R0,[R0, #+0]
+   \   00000214   050050E3           CMP      R0,#+5
+   \   00000218   1500003A           BCC      ??poll_ping_13
+    299          			{
+    300          				Led(OFF);  // Тушим светодиод ибо цель не видна
+   \   0000021C   0000A0E3           MOV      R0,#+0
+   \   00000220   ........           BL       Led
+    301          				s_uip_send = 1; // Высталяем флаг что хотим попинговать
+   \   00000224   ........           LDR      R0,??DataTable48  ;; s_uip_send
+   \   00000228   0110A0E3           MOV      R1,#+1
+   \   0000022C   0010C0E5           STRB     R1,[R0, #+0]
+    302                          no_answer++; // Инкримент счётчика неответа
+   \   00000230   50009FE5           LDR      R0,??poll_ping_0+0xC  ;; ??no_answer
+   \   00000234   0000D0E5           LDRB     R0,[R0, #+0]
+   \   00000238   010090E2           ADDS     R0,R0,#+1
+   \   0000023C   44109FE5           LDR      R1,??poll_ping_0+0xC  ;; ??no_answer
+   \   00000240   0000C1E5           STRB     R0,[R1, #+0]
+    303                          server_visible = 0; // Снимаем флаг видимости цели
+   \   00000244   4C009FE5           LDR      R0,??poll_ping_0+0x1C  ;; server_visible
+   \   00000248   0010A0E3           MOV      R1,#+0
+   \   0000024C   0010C0E5           STRB     R1,[R0, #+0]
+    304                          time_out_ping = 0;
+   \   00000250   3C009FE5           LDR      R0,??poll_ping_0+0x18  ;; ??time_out_ping
+   \   00000254   0010A0E3           MOV      R1,#+0
+   \   00000258   0010C0E5           STRB     R1,[R0, #+0]
+    305                          count_send_icmp++;//Отосланый пакет считать зачотным автар маладец!!!
+   \   0000025C   20009FE5           LDR      R0,??poll_ping_0+0x8  ;; ??count_send_icmp
+   \   00000260   000090E5           LDR      R0,[R0, #+0]
+   \   00000264   010090E2           ADDS     R0,R0,#+1
+   \   00000268   14109FE5           LDR      R1,??poll_ping_0+0x8  ;; ??count_send_icmp
+   \   0000026C   000081E5           STR      R0,[R1, #+0]
+    306                          return;
+   \   00000270   FFFFFFEA           B        ??poll_ping_11
+    307          			}
+    308          		}
+    309          	}
+    310          	// -----------------------------------------------------------------
+    311          }
+   \                     ??poll_ping_13:
+   \                     ??poll_ping_9:
+   \                     ??poll_ping_6:
+   \                     ??poll_ping_11:
+   \   00000274   3140BDE8           POP      {R0,R4,R5,LR}
+   \   00000278   1EFF2FE1           BX       LR               ;; return
+   \                     ??poll_ping_0:
+   \   0000027C   ........           DC32     ??Reboot
+   \   00000280   ........           DC32     sec_counter_local
+   \   00000284   ........           DC32     ??count_send_icmp
+   \   00000288   ........           DC32     ??no_answer
+   \   0000028C   ........           DC32     ??TOGLE_PING
+   \   00000290   ........           DC32     ping_flag
+   \   00000294   ........           DC32     ??time_out_ping
+   \   00000298   ........           DC32     server_visible
+
+   \                                 In section .bss, align 4
+   \                     ??count_send_icmp:
+   \   00000000                      DS8 4
+
+   \                                 In section .bss, align 1
+   \                     ??time_out_ping:
+   \   00000000                      DS8 1
+
+   \                                 In section .data, align 1
+   \                     ??TOGLE_PING:
+   \   00000000   01                 DC8 1
+
+   \                                 In section .bss, align 1
+   \                     ??no_answer:
+   \   00000000                      DS8 1
+
+   \                                 In section .bss, align 1
+   \                     ??Reboot:
+   \   00000000                      DS8 1
+    312          //------------------------------------------------------------------------------
+    313          
+    314          //------------------------------------------------------------------------------
+
+   \                                 In section .text, align 4, keep-with-next
+    315          int main(void) // главный модуль программы
+    316          {
+   \                     main:
+   \   00000000   F0412DE9           PUSH     {R4-R8,LR}
+    317              unsigned long* wrptr = (unsigned long*)ADRESS_FLASH_SETING;
+   \   00000004   7F0CA0E3           MOV      R0,#+32512
+   \   00000008   0040B0E1           MOVS     R4,R0
+    318          	int i=0;
+   \   0000000C   0000A0E3           MOV      R0,#+0
+   \   00000010   0050B0E1           MOVS     R5,R0
+    319          	char togle = 0;
+   \   00000014   0000A0E3           MOV      R0,#+0
+   \   00000018   0060B0E1           MOVS     R6,R0
+    320          	int len_buf = 0;
+   \   0000001C   0000A0E3           MOV      R0,#+0
+   \   00000020   0070B0E1           MOVS     R7,R0
+    321          	int arp_count =0;
+   \   00000024   0000A0E3           MOV      R0,#+0
+   \   00000028   0080B0E1           MOVS     R8,R0
+    322              at91flashInit();
+   \   0000002C   ........           BL       at91flashInit
+    323           //   uart0_init();
+    324              wdt_init();
+   \   00000030   ........           BL       wdt_init
+    325              if (wrptr[0] == 0xFFFFFFFF)
+   \   00000034   000094E5           LDR      R0,[R4, #+0]
+   \   00000038   010070E3           CMN      R0,#+1
+   \   0000003C   0800001A           BNE      ??main_0
+    326              {
+    327                default_setting_set(); // Если чистая память то записывам туда
+   \   00000040   ........           BL       default_setting_set
+    328                //uart0_puts("load default setting\n");
+    329                at91flashSetLock(ADRESS_FLASH_SETING,0);
+   \   00000044   0010A0E3           MOV      R1,#+0
+   \   00000048   7F0CA0E3           MOV      R0,#+32512
+   \   0000004C   ........           BL       at91flashSetLock
+    330                at91flashWrite(ADRESS_FLASH_SETING,setting_buf,sizeof(setting_buf));
+   \   00000050   3520A0E3           MOV      R2,#+53
+   \   00000054   ........           LDR      R1,??DataTable39  ;; setting_buf
+   \   00000058   7F0CA0E3           MOV      R0,#+32512
+   \   0000005C   ........           BL       at91flashWrite
+   \   00000060   000000EA           B        ??main_1
+    331              }
+    332              else
+    333              {
+    334                read_device_setting();
+   \                     ??main_0:
+   \   00000064   ........           BL       read_device_setting
+    335                //uart0_puts("load stored in flash setting\n");
+    336              }
+    337          	timer_set(&periodic_timer, CLOCK_SECOND / 2);
+   \                     ??main_1:
+   \   00000068   0510A0E3           MOV      R1,#+5
+   \   0000006C   8C039FE5           LDR      R0,??main_2      ;; periodic_timer
+   \   00000070   ........           BL       timer_set
+    338          	timer_set(&arp_timer, CLOCK_SECOND * 1);
+   \   00000074   0A10A0E3           MOV      R1,#+10
+   \   00000078   84039FE5           LDR      R0,??main_2+0x4  ;; arp_timer
+   \   0000007C   ........           BL       timer_set
+    339          	timer_set(&time_to_ping,SET->period); // periodic call send ping
+   \   00000080   ........           LDR      R0,??DataTable32  ;; setting_buf + 36
+   \   00000084   B010D0E1           LDRH     R1,[R0, #+0]
+   \   00000088   78039FE5           LDR      R0,??main_2+0x8  ;; time_to_ping
+   \   0000008C   ........           BL       timer_set
+    340          	timer_set(&timeout_ping,5); // ping time out timer
+   \   00000090   0510A0E3           MOV      R1,#+5
+   \   00000094   70039FE5           LDR      R0,??main_2+0xC  ;; timeout_ping
+   \   00000098   ........           BL       timer_set
+    341          	timer_set(&sec_timer,1);
+   \   0000009C   0110A0E3           MOV      R1,#+1
+   \   000000A0   ........           LDR      R0,??DataTable41  ;; sec_timer
+   \   000000A4   ........           BL       timer_set
+    342          	if(SET->time == 0) no_reboot = 1;
+   \   000000A8   ........           LDR      R0,??DataTable36  ;; setting_buf + 42
+   \   000000AC   B000D0E1           LDRH     R0,[R0, #+0]
+   \   000000B0   000050E3           CMP      R0,#+0
+   \   000000B4   0300001A           BNE      ??main_3
+   \   000000B8   ........           LDR      R0,??DataTable35  ;; no_reboot
+   \   000000BC   0110A0E3           MOV      R1,#+1
+   \   000000C0   0010C0E5           STRB     R1,[R0, #+0]
+   \   000000C4   030000EA           B        ??main_4
+    343          	else timer_set(&reboot_timer,SET->time);
+   \                     ??main_3:
+   \   000000C8   ........           LDR      R0,??DataTable36  ;; setting_buf + 42
+   \   000000CC   B010D0E1           LDRH     R1,[R0, #+0]
+   \   000000D0   ........           LDR      R0,??DataTable37  ;; reboot_timer
+   \   000000D4   ........           BL       timer_set
+    344          	reboot_counter = 0;
+   \                     ??main_4:
+   \   000000D8   ........           LDR      R0,??DataTable38  ;; reboot_counter
+   \   000000DC   0010A0E3           MOV      R1,#+0
+   \   000000E0   001080E5           STR      R1,[R0, #+0]
+    345          	//---------------------------------------------------------
+    346          	config_mcu();   // инициализация служб и оборудования
+   \   000000E4   ........           BL       config_mcu
+    347          	//---------------------------------------------------------
+    348          #ifdef SWS01
+    349                  
+    350          #else
+    351          	if ((AT91C_BASE_PIOA->PIO_PDSR & SWDEF)==0)
+   \   000000E8   C300E0E3           MVN      R0,#+195
+   \   000000EC   B00EC0E3           BIC      R0,R0,#0xB00
+   \   000000F0   000090E5           LDR      R0,[R0, #+0]
+   \   000000F4   080010E3           TST      R0,#0x8
+   \   000000F8   2800001A           BNE      ??main_5
+    352          	{
+    353          		Led(ON);
+   \   000000FC   0100A0E3           MOV      R0,#+1
+   \   00000100   ........           BL       Led
+    354          		delay_ms(100);
+   \   00000104   6400A0E3           MOV      R0,#+100
+   \   00000108   ........           BL       delay_ms
+    355          		Led(OFF);
+   \   0000010C   0000A0E3           MOV      R0,#+0
+   \   00000110   ........           BL       Led
+    356          		delay_ms(100);
+   \   00000114   6400A0E3           MOV      R0,#+100
+   \   00000118   ........           BL       delay_ms
+    357          		Led(ON);
+   \   0000011C   0100A0E3           MOV      R0,#+1
+   \   00000120   ........           BL       Led
+    358          		delay_ms(100);
+   \   00000124   6400A0E3           MOV      R0,#+100
+   \   00000128   ........           BL       delay_ms
+    359          		Led(OFF);
+   \   0000012C   0000A0E3           MOV      R0,#+0
+   \   00000130   ........           BL       Led
+    360          		delay_ms(100);
+   \   00000134   6400A0E3           MOV      R0,#+100
+   \   00000138   ........           BL       delay_ms
+    361          		Led(ON);
+   \   0000013C   0100A0E3           MOV      R0,#+1
+   \   00000140   ........           BL       Led
+    362          	    default_setting_set(); // Если чистая память то записывам туда
+   \   00000144   ........           BL       default_setting_set
+    363          	    //uart0_puts("load default setting\n");
+    364          	    at91flashSetLock(ADRESS_FLASH_SETING,0);
+   \   00000148   0010A0E3           MOV      R1,#+0
+   \   0000014C   7F0CA0E3           MOV      R0,#+32512
+   \   00000150   ........           BL       at91flashSetLock
+    365          	    at91flashWrite(ADRESS_FLASH_SETING,setting_buf,sizeof(setting_buf));
+   \   00000154   3520A0E3           MOV      R2,#+53
+   \   00000158   ........           LDR      R1,??DataTable39  ;; setting_buf
+   \   0000015C   7F0CA0E3           MOV      R0,#+32512
+   \   00000160   ........           BL       at91flashWrite
+    366          		Led(ON);
+   \   00000164   0100A0E3           MOV      R0,#+1
+   \   00000168   ........           BL       Led
+    367          		delay_ms(100);
+   \   0000016C   6400A0E3           MOV      R0,#+100
+   \   00000170   ........           BL       delay_ms
+    368          		Led(OFF);
+   \   00000174   0000A0E3           MOV      R0,#+0
+   \   00000178   ........           BL       Led
+    369          		delay_ms(100);
+   \   0000017C   6400A0E3           MOV      R0,#+100
+   \   00000180   ........           BL       delay_ms
+    370          		Led(ON);
+   \   00000184   0100A0E3           MOV      R0,#+1
+   \   00000188   ........           BL       Led
+    371          		delay_ms(100);
+   \   0000018C   6400A0E3           MOV      R0,#+100
+   \   00000190   ........           BL       delay_ms
+    372          		Led(OFF);
+   \   00000194   0000A0E3           MOV      R0,#+0
+   \   00000198   ........           BL       Led
+    373          		while(1);
+   \                     ??main_6:
+   \   0000019C   FEFFFFEA           B        ??main_6
+    374          	}
+    375          #endif
+    376          	//---------------------------------------------------------
+    377          	network_device_init();
+   \                     ??main_5:
+   \   000001A0   ........           BL       network_device_init
+    378          	clock_init();
+   \   000001A4   ........           BL       clock_init
+    379          	uip_arp_init();
+   \   000001A8   ........           BL       uip_arp_init
+    380          	uip_init();
+   \   000001AC   ........           BL       uip_init
+    381          	telnetd_init();
+   \   000001B0   ........           BL       telnetd_init
+    382                  //----------------------------------------------
+    383          //        uip_ipaddr_t ipaddr;
+    384          //        uip_ipaddr(&ipaddr, 192,168,5,51);
+    385          //        uip_connect(&ipaddr, HTONS(1468));
+    386          	//----------------------------------------------
+    387          	//uart0_puts("Start System\n");
+    388          //=--------------------------------------------------------------------------------------
+    389          	while(1)
+    390          	{
+    391          	//-----------------------------------------------------------------------------------
+    392          	WDT_RES();
+   \                     ??main_7:
+   \   000001B4   ........           BL       hal_WDR
+    393          	uip_len = network_device_read();
+   \   000001B8   ........           BL       network_device_read
+   \   000001BC   4C129FE5           LDR      R1,??main_2+0x10  ;; uip_len
+   \   000001C0   B000C1E1           STRH     R0,[R1, #+0]
+    394          	if(uip_len > 0)
+   \   000001C4   44029FE5           LDR      R0,??main_2+0x10  ;; uip_len
+   \   000001C8   B000D0E1           LDRH     R0,[R0, #+0]
+   \   000001CC   010050E3           CMP      R0,#+1
+   \   000001D0   2100003A           BCC      ??main_8
+    395          	{
+    396          	 if(BUF->type == htons(UIP_ETHTYPE_IP))
+   \   000001D4   800EA0E3           MOV      R0,#+2048
+   \   000001D8   ........           BL       htons
+   \   000001DC   30129FE5           LDR      R1,??main_2+0x14  ;; uip_buf + 12
+   \   000001E0   B010D1E1           LDRH     R1,[R1, #+0]
+   \   000001E4   0008A0E1           MOV      R0,R0, LSL #+16
+   \   000001E8   2008B0E1           MOVS     R0,R0, LSR #+16
+   \   000001EC   000051E1           CMP      R1,R0
+   \   000001F0   0900001A           BNE      ??main_9
+    397          	  {
+    398          		uip_arp_ipin();
+   \   000001F4   ........           BL       uip_arp_ipin
+    399          		uip_input();
+   \   000001F8   0100A0E3           MOV      R0,#+1
+   \   000001FC   ........           BL       uip_process
+    400          	   /* If the above function invocation resulted in data that
+    401          		  should be sent out on the network, the global variable
+    402          		 uip_len is set to a value > 0. */
+    403          	   if(uip_len > 0)
+   \   00000200   08029FE5           LDR      R0,??main_2+0x10  ;; uip_len
+   \   00000204   B000D0E1           LDRH     R0,[R0, #+0]
+   \   00000208   010050E3           CMP      R0,#+1
+   \   0000020C   0100003A           BCC      ??main_10
+    404          		  {
+    405          			uip_arp_out();
+   \   00000210   ........           BL       uip_arp_out
+    406          			network_device_send();
+   \   00000214   ........           BL       network_device_send
+   \                     ??main_10:
+   \   00000218   0E0000EA           B        ??main_11
+    407          		  }
+    408          	  }
+    409          	 else
+    410          	 if(BUF->type == htons(UIP_ETHTYPE_ARP))
+   \                     ??main_9:
+   \   0000021C   0600A0E3           MOV      R0,#+6
+   \   00000220   800E80E3           ORR      R0,R0,#0x800
+   \   00000224   ........           BL       htons
+   \   00000228   E4119FE5           LDR      R1,??main_2+0x14  ;; uip_buf + 12
+   \   0000022C   B010D1E1           LDRH     R1,[R1, #+0]
+   \   00000230   0008A0E1           MOV      R0,R0, LSL #+16
+   \   00000234   2008B0E1           MOVS     R0,R0, LSR #+16
+   \   00000238   000051E1           CMP      R1,R0
+   \   0000023C   0500001A           BNE      ??main_12
+    411          	  {
+    412          	   uip_arp_arpin();
+   \   00000240   ........           BL       uip_arp_arpin
+    413          	   /* If the above function invocation resulted in data that
+    414          		  should be sent out on the network, the global variable
+    415          		  uip_len is set to a value > 0. */
+    416          	   if(uip_len > 0)
+   \   00000244   C4019FE5           LDR      R0,??main_2+0x10  ;; uip_len
+   \   00000248   B000D0E1           LDRH     R0,[R0, #+0]
+   \   0000024C   010050E3           CMP      R0,#+1
+   \   00000250   0000003A           BCC      ??main_13
+    417          		{
+    418          		 network_device_send();
+   \   00000254   ........           BL       network_device_send
+   \                     ??main_13:
+   \                     ??main_12:
+   \                     ??main_11:
+   \   00000258   670000EA           B        ??main_14
+    419          		}
+    420          	  }
+    421          	}
+    422          	else
+    423          	{
+    424          	if(timer_expired(&periodic_timer))
+   \                     ??main_8:
+   \   0000025C   9C019FE5           LDR      R0,??main_2      ;; periodic_timer
+   \   00000260   ........           BL       timer_expired
+   \   00000264   000050E3           CMP      R0,#+0
+   \   00000268   1400000A           BEQ      ??main_15
+    425          	  {
+    426          	   timer_reset(&periodic_timer);
+   \   0000026C   8C019FE5           LDR      R0,??main_2      ;; periodic_timer
+   \   00000270   ........           BL       timer_reset
+    427          	   for(i = 0; i < UIP_CONNS; i++)
+   \   00000274   0000A0E3           MOV      R0,#+0
+   \   00000278   0050B0E1           MOVS     R5,R0
+   \                     ??main_16:
+   \   0000027C   010055E3           CMP      R5,#+1
+   \   00000280   0E0000AA           BGE      ??main_17
+    428          		{
+    429          		  uip_periodic(i);
+   \   00000284   A800A0E3           MOV      R0,#+168
+   \   00000288   88119FE5           LDR      R1,??main_2+0x18  ;; uip_conns
+   \   0000028C   901521E0           MLA      R1,R0,R5,R1
+   \   00000290   84019FE5           LDR      R0,??main_2+0x1C  ;; uip_conn
+   \   00000294   001080E5           STR      R1,[R0, #+0]
+   \   00000298   0200A0E3           MOV      R0,#+2
+   \   0000029C   ........           BL       uip_process
+    430          		  /* If the above function invocation resulted in data that
+    431          			 should be sent out on the network, the global variable
+    432          			 uip_len is set to a value > 0. */
+    433          		  if(uip_len > 0)
+   \   000002A0   68019FE5           LDR      R0,??main_2+0x10  ;; uip_len
+   \   000002A4   B000D0E1           LDRH     R0,[R0, #+0]
+   \   000002A8   010050E3           CMP      R0,#+1
+   \   000002AC   0100003A           BCC      ??main_18
+    434          			{
+    435          			   uip_arp_out();
+   \   000002B0   ........           BL       uip_arp_out
+    436          			   network_device_send();
+   \   000002B4   ........           BL       network_device_send
+    437          			}
+    438          	   }
+   \                     ??main_18:
+   \   000002B8   015095E2           ADDS     R5,R5,#+1
+   \   000002BC   EEFFFFEA           B        ??main_16
+    439          	  }
+    440          	  /* Call the ARP timer function every 10 seconds. */
+    441          	if(timer_expired(&arp_timer))
+   \                     ??main_17:
+   \                     ??main_15:
+   \   000002C0   3C019FE5           LDR      R0,??main_2+0x4  ;; arp_timer
+   \   000002C4   ........           BL       timer_expired
+   \   000002C8   000050E3           CMP      R0,#+0
+   \   000002CC   0200000A           BEQ      ??main_19
+    442          	  {
+    443          		timer_reset(&arp_timer);
+   \   000002D0   2C019FE5           LDR      R0,??main_2+0x4  ;; arp_timer
+   \   000002D4   ........           BL       timer_reset
+    444          		uip_arp_timer();
+   \   000002D8   ........           BL       uip_arp_timer
+    445          	  }
+    446          	//--------------------------------------------------------------------
+    447          	if (DEVICE_STATE)
+   \                     ??main_19:
+   \   000002DC   3C019FE5           LDR      R0,??main_2+0x20  ;; DEVICE_STATE
+   \   000002E0   0000D0E5           LDRB     R0,[R0, #+0]
+   \   000002E4   000050E3           CMP      R0,#+0
+   \   000002E8   1500000A           BEQ      ??main_20
+    448          	{
+    449          		if (timer_expired(&sec_timer))
+   \   000002EC   ........           LDR      R0,??DataTable41  ;; sec_timer
+   \   000002F0   ........           BL       timer_expired
+   \   000002F4   000050E3           CMP      R0,#+0
+   \   000002F8   1000000A           BEQ      ??main_21
+    450          		{
+    451          			timer_restart(&sec_timer);
+   \   000002FC   ........           LDR      R0,??DataTable41  ;; sec_timer
+   \   00000300   ........           BL       timer_restart
+    452          			if (togle == 0) {Led(ON);togle = 1;}
+   \   00000304   FF6016E2           ANDS     R6,R6,#0xFF      ;; Zero extend
+   \   00000308   000056E3           CMP      R6,#+0
+   \   0000030C   0400001A           BNE      ??main_22
+   \   00000310   0100A0E3           MOV      R0,#+1
+   \   00000314   ........           BL       Led
+   \   00000318   0100A0E3           MOV      R0,#+1
+   \   0000031C   0060B0E1           MOVS     R6,R0
+   \   00000320   060000EA           B        ??main_23
+    453          	        else
+    454          			if (togle == 1) {Led(OFF);togle = 0;}
+   \                     ??main_22:
+   \   00000324   FF6016E2           ANDS     R6,R6,#0xFF      ;; Zero extend
+   \   00000328   010056E3           CMP      R6,#+1
+   \   0000032C   0300001A           BNE      ??main_24
+   \   00000330   0000A0E3           MOV      R0,#+0
+   \   00000334   ........           BL       Led
+   \   00000338   0000A0E3           MOV      R0,#+0
+   \   0000033C   0060B0E1           MOVS     R6,R0
+   \                     ??main_24:
+   \                     ??main_23:
+   \                     ??main_21:
+   \   00000340   2D0000EA           B        ??main_25
+    455          		}
+    456          	}
+    457          	else
+    458          	{
+    459          		if (s_uip_send)
+   \                     ??main_20:
+   \   00000344   ........           LDR      R0,??DataTable48  ;; s_uip_send
+   \   00000348   0000D0E5           LDRB     R0,[R0, #+0]
+   \   0000034C   000050E3           CMP      R0,#+0
+   \   00000350   2800000A           BEQ      ??main_26
+    460          		{
+    461          
+    462          			trgetaddr[0] = SET->Target[0];
+   \   00000354   ........           LDR      R0,??DataTable43  ;; setting_buf + 32
+   \   00000358   B000D0E1           LDRH     R0,[R0, #+0]
+   \   0000035C   C0109FE5           LDR      R1,??main_2+0x24  ;; trgetaddr
+   \   00000360   B000C1E1           STRH     R0,[R1, #+0]
+    463          			trgetaddr[1] = SET->Target[1];
+   \   00000364   BC009FE5           LDR      R0,??main_2+0x28  ;; trgetaddr + 2
+   \   00000368   ........           LDR      R1,??DataTable44  ;; setting_buf + 34
+   \   0000036C   B010D1E1           LDRH     R1,[R1, #+0]
+   \   00000370   B010C0E1           STRH     R1,[R0, #+0]
+    464          			uip_ping(trgetaddr,128,SET->size);
+   \   00000374   ........           LDR      R0,??DataTable45  ;; setting_buf + 44
+   \   00000378   B020D0E1           LDRH     R2,[R0, #+0]
+   \   0000037C   8010A0E3           MOV      R1,#+128
+   \   00000380   9C009FE5           LDR      R0,??main_2+0x24  ;; trgetaddr
+   \   00000384   ........           BL       uip_ping
+    465          			len_buf = uip_len;
+   \   00000388   80009FE5           LDR      R0,??main_2+0x10  ;; uip_len
+   \   0000038C   B000D0E1           LDRH     R0,[R0, #+0]
+   \   00000390   0070B0E1           MOVS     R7,R0
+    466                      uip_arp_ipin();
+   \   00000394   ........           BL       uip_arp_ipin
+    467                      uip_arp_out();
+   \   00000398   ........           BL       uip_arp_out
+    468                      if (len_buf == uip_len) // Если найден MAC адрес
+   \   0000039C   6C009FE5           LDR      R0,??main_2+0x10  ;; uip_len
+   \   000003A0   B000D0E1           LDRH     R0,[R0, #+0]
+   \   000003A4   000057E1           CMP      R7,R0
+   \   000003A8   0400001A           BNE      ??main_27
+    469                      {
+    470                        s_uip_send = 0;
+   \   000003AC   ........           LDR      R0,??DataTable48  ;; s_uip_send
+   \   000003B0   0010A0E3           MOV      R1,#+0
+   \   000003B4   0010C0E5           STRB     R1,[R0, #+0]
+    471                        network_device_send();// Отсылаем пинг
+   \   000003B8   ........           BL       network_device_send
+   \   000003BC   0C0000EA           B        ??main_28
+    472                      }
+    473                      else
+    474                      {						// Если не найден MAC адрес
+    475                      	if (arp_count == 20)
+   \                     ??main_27:
+   \   000003C0   140058E3           CMP      R8,#+20
+   \   000003C4   0500001A           BNE      ??main_29
+    476          				{
+    477          					s_uip_send = 0;
+   \   000003C8   ........           LDR      R0,??DataTable48  ;; s_uip_send
+   \   000003CC   0010A0E3           MOV      R1,#+0
+   \   000003D0   0010C0E5           STRB     R1,[R0, #+0]
+    478          					arp_count = 0;
+   \   000003D4   0000A0E3           MOV      R0,#+0
+   \   000003D8   0080B0E1           MOVS     R8,R0
+   \   000003DC   030000EA           B        ??main_30
+    479          				}
+    480                      	else
+    481          				{
+    482          					s_uip_send = 1;
+   \                     ??main_29:
+   \   000003E0   ........           LDR      R0,??DataTable48  ;; s_uip_send
+   \   000003E4   0110A0E3           MOV      R1,#+1
+   \   000003E8   0010C0E5           STRB     R1,[R0, #+0]
+    483          					arp_count++;
+   \   000003EC   018098E2           ADDS     R8,R8,#+1
+    484          				}
+    485          
+    486                      	network_device_send();
+   \                     ??main_30:
+   \   000003F0   ........           BL       network_device_send
+   \                     ??main_28:
+   \   000003F4   000000EA           B        ??main_31
+    487                      }
+    488          		}
+    489          		else
+    490          		{
+    491          			poll_ping();
+   \                     ??main_26:
+   \   000003F8   ........           BL       poll_ping
+   \                     ??main_31:
+   \                     ??main_25:
+   \                     ??main_14:
+   \   000003FC   6CFFFFEA           B        ??main_7
+   \                     ??main_2:
+   \   00000400   ........           DC32     periodic_timer
+   \   00000404   ........           DC32     arp_timer
+   \   00000408   ........           DC32     time_to_ping
+   \   0000040C   ........           DC32     timeout_ping
+   \   00000410   ........           DC32     uip_len
+   \   00000414   ........           DC32     uip_buf + 12
+   \   00000418   ........           DC32     uip_conns
+   \   0000041C   ........           DC32     uip_conn
+   \   00000420   ........           DC32     DEVICE_STATE
+   \   00000424   ........           DC32     trgetaddr
+   \   00000428   ........           DC32     trgetaddr + 2
+    492          		}
+    493          	}
+    494          	//-------------------------------------------------------------------
+    495          	}
+    496          	//-------------------------------------------------------------------
+    497          	}
+    498          }
+
+   \                                 In section .text, align 4, keep-with-next
+   \                     ??DataTable3:
+   \   00000000   ........           DC32     sec_counter
+
+   \                                 In section .text, align 4, keep-with-next
+   \                     ??DataTable22:
+   \   00000000   ........           DC32     setting_buf + 38
+
+   \                                 In section .text, align 4, keep-with-next
+   \                     ??DataTable23:
+   \   00000000   ........           DC32     setting_buf + 40
+
+   \                                 In section .text, align 4, keep-with-next
+   \                     ??DataTable32:
+   \   00000000   ........           DC32     setting_buf + 36
+
+   \                                 In section .text, align 4, keep-with-next
+   \                     ??DataTable35:
+   \   00000000   ........           DC32     no_reboot
+
+   \                                 In section .text, align 4, keep-with-next
+   \                     ??DataTable36:
+   \   00000000   ........           DC32     setting_buf + 42
+
+   \                                 In section .text, align 4, keep-with-next
+   \                     ??DataTable37:
+   \   00000000   ........           DC32     reboot_timer
+
+   \                                 In section .text, align 4, keep-with-next
+   \                     ??DataTable38:
+   \   00000000   ........           DC32     reboot_counter
+
+   \                                 In section .text, align 4, keep-with-next
+   \                     ??DataTable39:
+   \   00000000   ........           DC32     setting_buf
+
+   \                                 In section .text, align 4, keep-with-next
+   \                     ??DataTable41:
+   \   00000000   ........           DC32     sec_timer
+
+   \                                 In section .text, align 4, keep-with-next
+   \                     ??DataTable43:
+   \   00000000   ........           DC32     setting_buf + 32
+
+   \                                 In section .text, align 4, keep-with-next
+   \                     ??DataTable44:
+   \   00000000   ........           DC32     setting_buf + 34
+
+   \                                 In section .text, align 4, keep-with-next
+   \                     ??DataTable45:
+   \   00000000   ........           DC32     setting_buf + 44
+
+   \                                 In section .text, align 4, keep-with-next
+   \                     ??DataTable48:
+   \   00000000   ........           DC32     s_uip_send
+
+   \                                 In section .rodata, align 4
+   \                     `?<Constant "DEBUG:">`:
+   \   00000000   44454255473A       DC8 "DEBUG:"
+   \              00          
+   \   00000007   00                 DC8 0
+    499          // enf of programm
+    500          
+    501          	
+
+   Maximum stack usage in bytes:
+
+     Function             .cstack
+     --------             -------
+     Led                       0
+     clock_init                0
+     clock_time                0
+     config_mcu                0
+     debug_out                 8
+     default_setting_set       8
+     delay_ms                 24
+     hal_WDR                   0
+     main                     24
+     poll_ping                16
+     read_device_setting       0
+     reset_switch              8
+     timer0_c_irq_handler      0
+     uip_log                   0
+     wdt_init                  0
+
+
+   Section sizes:
+
+     Function/Label       Bytes
+     --------------       -----
+     periodic_timer          8
+     arp_timer               8
+     time_to_ping            8
+     timeout_ping            8
+     sec_timer               8
+     reboot_timer            8
+     setting_buf            56
+     DEVICE_STATE            1
+     sendPING                1
+     sec_counter             4
+     s_uip_send              1
+     reboot_counter          4
+     no_reboot               1
+     trgetaddr               4
+     server_visible          1
+     debug_out              72
+     hal_WDR                24
+     Led                    60
+     delay_ms              100
+     reset_switch           72
+     timer0_c_irq_handler   88
+     time                    4
+     clock_init            268
+     clock_time             12
+     uip_log                 4
+     wdt_init               24
+     config_mcu            112
+     read_device_setting   260
+     default_setting_set   460
+     sec_counter_local       4
+     poll_ping             668
+     count_send_icmp         4
+     time_out_ping           1
+     TOGLE_PING              1
+     no_answer               1
+     Reboot                  1
+     main                 1068
+     ??DataTable3            4
+     ??DataTable22           4
+     ??DataTable23           4
+     ??DataTable32           4
+     ??DataTable35           4
+     ??DataTable36           4
+     ??DataTable37           4
+     ??DataTable38           4
+     ??DataTable39           4
+     ??DataTable41           4
+     ??DataTable43           4
+     ??DataTable44           4
+     ??DataTable45           4
+     ??DataTable48           4
+     ?<Constant "DEBUG:">    8
+
+ 
+   128 bytes in section .bss
+     9 bytes in section .data
+     8 bytes in section .rodata
+ 3 348 bytes in section .text
+ 
+ 3 348 bytes of CODE  memory
+     8 bytes of CONST memory
+   137 bytes of DATA  memory
+
+Errors: none
+Warnings: none
